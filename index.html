@@ -1,0 +1,1286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>SMC Suite — Smart Money Concepts Trading Framework</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Space+Mono:wght@400;700&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- TOP NAV -->
+<nav class="top-nav">
+  <div class="nav-brand">
+    SMC<span style="color:var(--pink)">SUITE</span>
+    <span class="nav-tag">v1.0</span>
+  </div>
+  <div class="nav-right">
+    <span style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;">Smart Money Concepts</span>
+  </div>
+</nav>
+
+<!-- SECTION TABS -->
+<div class="section-tabs">
+  <button class="section-tab active" onclick="switchSection('learn')" id="tab-learn">
+    <span class="tab-num">01</span> Learn
+  </button>
+  <button class="section-tab" onclick="switchSection('think')" id="tab-think">
+    <span class="tab-num">02</span> Think
+  </button>
+  <button class="section-tab" onclick="switchSection('apply')" id="tab-apply">
+    <span class="tab-num">03</span> Apply
+  </button>
+</div>
+
+<!-- ════════════════════════════════════════════════
+     SECTION 1: LEARN — Mentorship Engine
+     ════════════════════════════════════════════════ -->
+<section class="section active" id="section-learn">
+  <div class="section-inner">
+    <div class="section-eyebrow">Smart Money Concepts — Interactive Mentorship</div>
+    <h1 class="section-title">The Framework</h1>
+    <p class="section-sub">Master the price delivery algorithm. Every concept builds on the last. Start with Market Structure — everything else flows from understanding how price moves and why.</p>
+
+    <div class="concept-grid" id="conceptGrid"></div>
+
+    <!-- MODULE DETAIL PANEL -->
+    <div class="module-panel" id="modulePanel">
+      <div class="module-header">
+        <div>
+          <div class="module-title" id="moduleTitle">—</div>
+          <div style="display:flex;gap:6px;align-items:center;margin-top:.3rem;">
+            <span class="pill" id="moduleCat">—</span>
+          </div>
+        </div>
+        <button class="module-close" onclick="closeModule()">✕ Close</button>
+      </div>
+      <div class="module-desc" id="moduleDesc"></div>
+      <div class="rules-title">Core Rules</div>
+      <ul class="rules-list" id="moduleRules"></ul>
+      <div class="visual-area" id="moduleVisual"></div>
+      <div class="related-row" id="moduleRelated"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════
+     SECTION 2: THINK — Decision Engine
+     ════════════════════════════════════════════════ -->
+<section class="section" id="section-think">
+  <div class="section-inner">
+    <div class="section-eyebrow">Structured Decision Making</div>
+    <h1 class="section-title">Decision Engine</h1>
+    <p class="section-sub">Work through each gate systematically. Your confidence score reflects setup quality — not a signal to follow blindly, but a discipline framework to follow consistently.</p>
+
+    <div class="engine-layout">
+      <!-- FORM -->
+      <div class="engine-form">
+
+        <!-- GATE 1: DIRECTION -->
+        <div class="gate-group">
+          <div class="gate-group-title"><span class="gate-num">01</span> Direction</div>
+          <div style="font-size:10px;color:var(--muted);font-weight:600;margin-bottom:.75rem;line-height:1.6;">Weekly/Daily bias + Draw on Liquidity. This is the anchor — nothing below matters until this passes.</div>
+          <div class="field-row">
+            <div class="field-label">Weekly / Daily bias <span class="field-sub">("NZT uses mainly the Weekly and Daily")</span></div>
+            <div class="btn-group">
+              <button class="opt-btn" data-field="weekly_daily_bias" data-val="bullish" onclick="setField(this,'weekly_daily_bias','bullish','bull')">▲ Bullish</button>
+              <button class="opt-btn" data-field="weekly_daily_bias" data-val="bearish" onclick="setField(this,'weekly_daily_bias','bearish','bear')">▼ Bearish</button>
+              <button class="opt-btn" data-field="weekly_daily_bias" data-val="ranging" onclick="setField(this,'weekly_daily_bias','ranging','warn')">↔ Ranging</button>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field-label">Monthly context</div>
+            <div class="btn-group">
+              <button class="opt-btn" data-field="monthly_context" data-val="aligned" onclick="setField(this,'monthly_context','aligned','bull')">✓ Aligned</button>
+              <button class="opt-btn" data-field="monthly_context" data-val="conflict" onclick="setField(this,'monthly_context','conflict','bear')">✗ Conflicts</button>
+              <button class="opt-btn" data-field="monthly_context" data-val="unclear" onclick="setField(this,'monthly_context','unclear','warn')">? Unclear</button>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field-label">Draw on Liquidity identified? <span class="field-sub">(mandatory — "bigger focus on DOL")</span></div>
+            <div class="btn-group">
+              <button class="opt-btn" data-field="dol_identified" data-val="true" onclick="setField(this,'dol_identified',true,'bull')">✓ Yes — DOL defined</button>
+              <button class="opt-btn" data-field="dol_identified" data-val="false" onclick="setField(this,'dol_identified',false,'bear')">✗ Not yet</button>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field-label">External / Internal range liquidity aligned? <span class="field-sub">(directional confluence)</span></div>
+            <div class="btn-group">
+              <button class="opt-btn" data-field="erl_irl_aligned" data-val="true" onclick="setField(this,'erl_irl_aligned',true,'bull')">✓ Aligned</button>
+              <button class="opt-btn" data-field="erl_irl_aligned" data-val="false" onclick="setField(this,'erl_irl_aligned',false,'warn')">✗ Not checked / no</button>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field-label">Day of week</div>
+            <div class="btn-group">
+              <button class="opt-btn" data-field="weekly_day" data-val="monday" onclick="setField(this,'weekly_day','monday')">Mon</button>
+              <button class="opt-btn" data-field="weekly_day" data-val="tuesday" onclick="setField(this,'weekly_day','tuesday')">Tue</button>
+              <button class="opt-btn" data-field="weekly_day" data-val="wednesday" onclick="setField(this,'weekly_day','wednesday')">Wed</button>
+              <button class="opt-btn" data-field="weekly_day" data-val="thursday" onclick="setField(this,'weekly_day','thursday')">Thu</button>
+              <button class="opt-btn" data-field="weekly_day" data-val="friday" onclick="setField(this,'weekly_day','friday')">Fri</button>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field-label">Has the weekly high/low been set yet?</div>
+            <div class="btn-group">
+              <button class="opt-btn" data-field="weekly_high_set" data-val="true" onclick="setField(this,'weekly_high_set',true,'bull')">✓ Yes</button>
+              <button class="opt-btn" data-field="weekly_high_set" data-val="false" onclick="setField(this,'weekly_high_set',false,'warn')">✗ Not yet</button>
+            </div>
+          </div>
+        </div>
+
+        <hr class="divider">
+
+        <!-- GATE 2: STAGE -->
+        <div class="gate-group">
+          <div class="gate-group-title"><span class="gate-num">02</span> Stage <span style="font-size:8px;color:var(--muted);font-weight:600;text-transform:none;letter-spacing:0;">— locked until Direction passes</span></div>
+          <div style="font-size:10px;color:var(--muted);font-weight:600;margin-bottom:.75rem;line-height:1.6;">Is the market actually creating the conditions for the move? "No stage = no trade."</div>
+          <div class="field-row">
+            <div class="field-label">Session</div>
+            <div class="btn-group">
+              <button class="opt-btn" data-field="session" data-val="asian" onclick="setField(this,'session','asian','warn')">🌏 Asian</button>
+              <button class="opt-btn" data-field="session" data-val="london" onclick="setField(this,'session','london','bull')">🇬🇧 London (LOKZ)</button>
+              <button class="opt-btn" data-field="session" data-val="newyork_am" onclick="setField(this,'session','newyork_am','bull')">🇺🇸 NY AM (NYOKZ)</button>
+              <button class="opt-btn" data-field="session" data-val="lunch" onclick="setField(this,'session','lunch','bear')">🍽 Lunch</button>
+              <button class="opt-btn" data-field="session" data-val="newyork_pm" onclick="setField(this,'session','newyork_pm')">🌆 NY PM</button>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field-label">Stage model <span class="field-sub">(the market model in play)</span></div>
+            <div class="btn-group">
+              <button class="opt-btn" data-field="stage_model" data-val="mmsm" onclick="setField(this,'stage_model','mmsm','bear')">MMSM (Sell Model)</button>
+              <button class="opt-btn" data-field="stage_model" data-val="mmbm" onclick="setField(this,'stage_model','mmbm','bull')">MMBM (Buy Model)</button>
+              <button class="opt-btn" data-field="stage_model" data-val="po3" onclick="setField(this,'stage_model','po3')">PO3</button>
+              <button class="opt-btn" data-field="stage_model" data-val="liquidity_sweep" onclick="setField(this,'stage_model','liquidity_sweep')">Liquidity Sweep</button>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field-label">HTF PD Array present? <span class="field-sub">(1H–4H/Daily, supporting bias)</span></div>
+            <div class="btn-group">
+              <button class="opt-btn" data-field="htf_array_present" data-val="true" onclick="setField(this,'htf_array_present',true,'bull')">✓ Yes</button>
+              <button class="opt-btn" data-field="htf_array_present" data-val="false" onclick="setField(this,'htf_array_present',false,'warn')">✗ No</button>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field-label">Array timeframe</div>
+            <div class="btn-group">
+              <button class="opt-btn" data-field="htf_array_tf" data-val="1h" onclick="setField(this,'htf_array_tf','1h')">1H</button>
+              <button class="opt-btn" data-field="htf_array_tf" data-val="4h" onclick="setField(this,'htf_array_tf','4h')">4H</button>
+              <button class="opt-btn" data-field="htf_array_tf" data-val="daily" onclick="setField(this,'htf_array_tf','daily')">Daily</button>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field-label">CISOD — displacement confirmed? <span class="field-sub">(Change In State Of Delivery)</span></div>
+            <div class="btn-group">
+              <button class="opt-btn" data-field="cisod_displacement" data-val="true" onclick="setField(this,'cisod_displacement',true,'bull')">✓ Yes</button>
+              <button class="opt-btn" data-field="cisod_displacement" data-val="false" onclick="setField(this,'cisod_displacement',false,'warn')">✗ Not yet</button>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field-label">CISOD confirmation type</div>
+            <div class="btn-group">
+              <button class="opt-btn" data-field="cisod_confirmation" data-val="fvg_cut" onclick="setField(this,'cisod_confirmation','fvg_cut','bull')">FVG Cut</button>
+              <button class="opt-btn" data-field="cisod_confirmation" data-val="mss" onclick="setField(this,'cisod_confirmation','mss','bull')">MSS</button>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field-label">CISOD timeframe <span class="field-sub">(4H/Daily array → prioritize 15M)</span></div>
+            <div class="btn-group">
+              <button class="opt-btn" data-field="cisod_tf" data-val="15m" onclick="setField(this,'cisod_tf','15m','bull')">15M</button>
+              <button class="opt-btn" data-field="cisod_tf" data-val="5m" onclick="setField(this,'cisod_tf','5m')">5M</button>
+            </div>
+          </div>
+        </div>
+
+        <hr class="divider">
+
+        <!-- GATE 3: ENTRY -->
+        <div class="gate-group">
+          <div class="gate-group-title"><span class="gate-num">03</span> Entry <span style="font-size:8px;color:var(--muted);font-weight:600;text-transform:none;letter-spacing:0;">— locked until Stage passes</span></div>
+          <div style="font-size:10px;color:var(--muted);font-weight:600;margin-bottom:.75rem;line-height:1.6;">"The entry is the easiest part." Execution only, once Stage has already confirmed the move.</div>
+          <div class="field-row">
+            <div class="field-label">Entry array</div>
+            <div class="btn-group">
+              <button class="opt-btn" data-field="entry_array_type" data-val="ob" onclick="setField(this,'entry_array_type','ob','bull')">Order Block</button>
+              <button class="opt-btn" data-field="entry_array_type" data-val="fvg" onclick="setField(this,'entry_array_type','fvg','bull')">FVG</button>
+              <button class="opt-btn" data-field="entry_array_type" data-val="mitigation" onclick="setField(this,'entry_array_type','mitigation','bull')">Mitigation Block</button>
+              <button class="opt-btn" data-field="entry_array_type" data-val="ote" onclick="setField(this,'entry_array_type','ote','bull')">OTE</button>
+              <button class="opt-btn" data-field="entry_array_type" data-val="iofed" onclick="setField(this,'entry_array_type','iofed','bull')">IOFED</button>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field-label">Risk:Reward ratio</div>
+            <div class="field-sub">Minimum 2:1. Preferred 3:1+</div>
+            <input type="number" class="rr-input" id="rrInput" placeholder="e.g. 3" step="0.5" min="0" oninput="SMCEngine.set('rr_ratio',this.value);evalEngine()">
+          </div>
+          <div class="field-row">
+            <div class="field-label">Clear liquidity target identified?</div>
+            <div class="btn-group">
+              <button class="opt-btn" data-field="target_identified" data-val="true" onclick="setField(this,'target_identified',true,'bull')">✓ Yes</button>
+              <button class="opt-btn" data-field="target_identified" data-val="false" onclick="setField(this,'target_identified',false)">✗ No</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="engine-actions">
+          <button class="eval-btn" onclick="evalEngine()">Evaluate Setup</button>
+          <button class="reset-btn" onclick="resetEngine()">↺ Reset</button>
+        </div>
+      </div>
+
+      <!-- RESULT PANEL -->
+      <div class="engine-result">
+        <div style="font-family:var(--mono);font-size:8px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:.85rem;">Confidence Score</div>
+        <div class="result-score">
+          <div class="score-circle" id="scoreCircle">
+            <div class="score-num" id="scoreNum">—</div>
+            <div class="score-max">/100</div>
+          </div>
+          <div class="result-tier" id="resultTier">—</div>
+          <div class="result-action" id="resultAction">Fill in Direction to begin — Stage and Entry unlock as you go</div>
+        </div>
+        <div style="text-align:center;margin-bottom:.75rem;" id="directionWrap"></div>
+        <div class="gates-breakdown" id="gatesBreakdown"></div>
+        <div id="weeklyWarning"></div>
+        <div id="dolWarning"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════
+     SECTION 3: APPLY — Live Charts
+     ════════════════════════════════════════════════ -->
+<section class="section" id="section-apply">
+  <div class="section-inner">
+    <div class="section-eyebrow">Live Market — Read-Only POC</div>
+    <h1 class="section-title">Apply the Framework</h1>
+    <p class="section-sub">High-liquidity instruments only. Use the top-down protocol — start on the weekly, work down to the entry timeframe. Analysis tools in v1.</p>
+
+    <div class="instrument-grid" id="instrumentGrid"></div>
+
+    <div style="font-family:var(--mono);font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:.5rem;">Timeframe</div>
+    <div class="tf-row" id="tfRow">
+      <button class="tf-btn" data-tf="W" onclick="setTF(this,'W')">Weekly</button>
+      <button class="tf-btn" data-tf="D" onclick="setTF(this,'D')">Daily</button>
+      <button class="tf-btn active" data-tf="240" onclick="setTF(this,'240')">4H</button>
+      <button class="tf-btn" data-tf="60" onclick="setTF(this,'60')">1H</button>
+      <button class="tf-btn" data-tf="15" onclick="setTF(this,'15')">15M</button>
+      <button class="tf-btn" data-tf="5" onclick="setTF(this,'5')">5M</button>
+    </div>
+
+    <div class="chart-container">
+      <div class="chart-info">
+        <div class="chart-symbol" id="chartSymbolLabel">Select an instrument above</div>
+        <div class="chart-context" id="chartContext">Top-down: start weekly → work to entry TF</div>
+      </div>
+      <div id="tradingview-widget" style="height:520px;"></div>
+    </div>
+
+    <!-- APPLY TOOLS ROW -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:1.5rem;" class="apply-tools-grid">
+
+      <!-- TRADE IDEA JOURNAL -->
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:1.1rem;">
+        <div style="font-family:var(--mono);font-size:8px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem;display:flex;justify-content:space-between;align-items:center;">
+          Trade Ideas
+          <button onclick="toggleJournal()" style="font-family:var(--mono);font-size:7px;letter-spacing:.08em;padding:3px 8px;border-radius:20px;border:1px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;">+ New idea</button>
+        </div>
+        <div id="journalForm" style="display:none;margin-bottom:.85rem;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px;">
+            <select id="jInstrument" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:9px;padding:.4rem .5rem;border-radius:7px;outline:none;"></select>
+            <select id="jBias" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:9px;padding:.4rem .5rem;border-radius:7px;outline:none;">
+              <option value="">Bias...</option>
+              <option value="long">Long</option>
+              <option value="short">Short</option>
+            </select>
+          </div>
+          <select id="jType" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:9px;padding:.4rem .5rem;border-radius:7px;outline:none;margin-bottom:6px;">
+            <option value="backtest">📓 Backtest</option>
+            <option value="forward">🔬 Forward-test / Demo</option>
+            <option value="live">🔴 Live</option>
+          </select>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:6px;">
+            <input id="jEntry" placeholder="Entry" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:9px;padding:.4rem .5rem;border-radius:7px;outline:none;" type="text">
+            <input id="jStop" placeholder="Stop" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:9px;padding:.4rem .5rem;border-radius:7px;outline:none;" type="text">
+            <input id="jTarget" placeholder="Target" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:9px;padding:.4rem .5rem;border-radius:7px;outline:none;" type="text">
+          </div>
+          <textarea id="jNotes" placeholder="Setup notes, key levels, session context, SL/TP justification..." rows="2" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--sans);font-weight:600;font-size:12px;padding:.4rem .6rem;border-radius:7px;outline:none;resize:none;margin-bottom:6px;line-height:1.5;"></textarea>
+          <textarea id="jFeeling" placeholder="How did you feel? (private — connects mistakes to the emotion that caused them)" rows="2" style="width:100%;background:rgba(139,124,246,0.04);border:1px solid rgba(139,124,246,0.2);color:var(--text);font-family:var(--sans);font-weight:600;font-size:12px;padding:.4rem .6rem;border-radius:7px;outline:none;resize:none;margin-bottom:6px;line-height:1.5;"></textarea>
+          <button onclick="saveIdea()" style="background:var(--cyan);color:#07090d;border:none;font-family:var(--display);font-size:10px;letter-spacing:.5px;padding:.5rem 1rem;border-radius:8px;cursor:pointer;width:100%;">Save Idea</button>
+        </div>
+        <div id="ideaList" style="display:flex;flex-direction:column;gap:6px;max-height:280px;overflow-y:auto;"></div>
+      </div>
+
+      <!-- BACKTEST LOG -->
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:1.1rem;">
+        <div style="font-family:var(--mono);font-size:8px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem;display:flex;justify-content:space-between;align-items:center;">
+          Backtest Log
+          <button onclick="toggleBacktest()" style="font-family:var(--mono);font-size:7px;letter-spacing:.08em;padding:3px 8px;border-radius:20px;border:1px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;">+ Log setup</button>
+        </div>
+        <div id="backtestForm" style="display:none;margin-bottom:.85rem;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px;">
+            <select id="btInstrument" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:9px;padding:.4rem .5rem;border-radius:7px;outline:none;"></select>
+            <select id="btOutcome" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:9px;padding:.4rem .5rem;border-radius:7px;outline:none;">
+              <option value="">Outcome...</option>
+              <option value="win">Win</option>
+              <option value="loss">Loss</option>
+              <option value="be">Break Even</option>
+            </select>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px;">
+            <input id="btScore" placeholder="Engine score (0-100)" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:9px;padding:.4rem .5rem;border-radius:7px;outline:none;" type="number" min="0" max="100">
+            <input id="btRR" placeholder="R:R achieved" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:9px;padding:.4rem .5rem;border-radius:7px;outline:none;" type="text">
+          </div>
+          <textarea id="btNotes" placeholder="What did you see? What worked or didn't?" rows="2" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--sans);font-weight:600;font-size:12px;padding:.4rem .6rem;border-radius:7px;outline:none;resize:none;margin-bottom:6px;line-height:1.5;"></textarea>
+          <button onclick="saveBacktest()" style="background:var(--violet);color:#fff;border:none;font-family:var(--display);font-size:10px;letter-spacing:.5px;padding:.5rem 1rem;border-radius:8px;cursor:pointer;width:100%;">Log Setup</button>
+        </div>
+        <div id="btStats" style="display:flex;gap:10px;margin-bottom:.65rem;flex-wrap:wrap;"></div>
+        <div id="btList" style="display:flex;flex-direction:column;gap:6px;max-height:220px;overflow-y:auto;"></div>
+      </div>
+    </div>
+
+    <!-- PRACTICE LOG — Pattern Recognition / Data Collection / Delivery of Price -->
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:1.1rem;margin-top:14px;">
+      <div style="font-family:var(--mono);font-size:8px;letter-spacing:.15em;text-transform:uppercase;color:var(--cyan);margin-bottom:.25rem;">Practice Log</div>
+      <div style="font-size:11px;color:var(--muted);font-weight:600;margin-bottom:.85rem;line-height:1.5;">Three distinct backtesting skills — not "finding entries." Pattern Recognition, Data Collection, Delivery of Price.</div>
+      <div class="btn-group" style="margin-bottom:.85rem;">
+        <button class="opt-btn practice-mode-btn active" data-mode="pattern" onclick="setPracticeMode('pattern',this)">🔍 Pattern Recognition</button>
+        <button class="opt-btn practice-mode-btn" data-mode="data" onclick="setPracticeMode('data',this)">📊 Data Collection</button>
+        <button class="opt-btn practice-mode-btn" data-mode="delivery" onclick="setPracticeMode('delivery',this)">🔮 Delivery of Price</button>
+      </div>
+
+      <!-- Pattern Recognition form -->
+      <div id="practiceForm-pattern" class="practice-form">
+        <div style="font-size:10px;color:var(--muted);font-weight:600;margin-bottom:.5rem;">Goal: find 20 examples of each array until it "jumps out at you" live.</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px;">
+          <select id="prArray" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:9px;padding:.4rem .5rem;border-radius:7px;outline:none;">
+            <option value="fvg">FVG</option>
+            <option value="ob">Order Block</option>
+            <option value="breaker">Breaker Block</option>
+            <option value="mitigation">Mitigation Block</option>
+            <option value="rejection">Rejection Block</option>
+            <option value="ote">OTE</option>
+            <option value="turtle_soup">Turtle Soup</option>
+            <option value="iofed">IOFED</option>
+          </select>
+          <select id="prInstrument" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:9px;padding:.4rem .5rem;border-radius:7px;outline:none;"></select>
+        </div>
+        <textarea id="prNotes" placeholder="What made this example valid? Location, session, confluence..." rows="2" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--sans);font-weight:600;font-size:12px;padding:.4rem .6rem;border-radius:7px;outline:none;resize:none;margin-bottom:6px;line-height:1.5;"></textarea>
+        <button onclick="logPattern()" style="background:var(--cyan);color:#07090d;border:none;font-family:var(--display);font-size:10px;letter-spacing:.5px;padding:.5rem 1rem;border-radius:8px;cursor:pointer;width:100%;">Log Example</button>
+        <div id="patternTally" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:.75rem;"></div>
+      </div>
+
+      <!-- Data Collection form -->
+      <div id="practiceForm-data" class="practice-form" style="display:none;">
+        <div style="font-size:10px;color:var(--muted);font-weight:600;margin-bottom:.5rem;">Track repeatable statistics — e.g. "how often does NY 8:30 produce an MSS."</div>
+        <input id="dcStat" placeholder="Statistic being tracked (e.g. 'NY 8:30 MSS')" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:10px;padding:.45rem .6rem;border-radius:7px;outline:none;margin-bottom:6px;">
+        <div class="btn-group" style="margin-bottom:6px;">
+          <button class="opt-btn" onclick="logData(true)">✓ Observed</button>
+          <button class="opt-btn" onclick="logData(false)">✗ Not observed</button>
+        </div>
+        <div id="dataTally" style="display:flex;flex-direction:column;gap:5px;margin-top:.5rem;"></div>
+      </div>
+
+      <!-- Delivery of Price form -->
+      <div id="practiceForm-delivery" class="practice-form" style="display:none;">
+        <div style="font-size:10px;color:var(--muted);font-weight:600;margin-bottom:.5rem;">Predict the next 1-4 candles before they form. Do this daily for 30 days.</div>
+        <select id="dpInstrument" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:9px;padding:.4rem .5rem;border-radius:7px;outline:none;margin-bottom:6px;"></select>
+        <div class="btn-group" style="margin-bottom:6px;">
+          <button class="opt-btn dp-pred-btn" data-v="bullish" onclick="setDpPrediction('bullish',this)">▲ Predict Higher</button>
+          <button class="opt-btn dp-pred-btn" data-v="bearish" onclick="setDpPrediction('bearish',this)">▼ Predict Lower</button>
+        </div>
+        <button onclick="logDelivery()" style="background:var(--violet);color:#fff;border:none;font-family:var(--display);font-size:10px;letter-spacing:.5px;padding:.5rem 1rem;border-radius:8px;cursor:pointer;width:100%;margin-bottom:6px;">Log Prediction</button>
+        <div id="deliveryPending" style="display:flex;flex-direction:column;gap:5px;margin-bottom:.5rem;"></div>
+        <div id="deliveryAccuracy" style="font-family:var(--mono);font-size:9px;color:var(--muted);"></div>
+      </div>
+    </div>
+
+    <!-- CONCEPT MASTERY — spaced-repetition self-grading -->
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:1.1rem;margin-top:14px;">
+      <div style="font-family:var(--mono);font-size:8px;letter-spacing:.15em;text-transform:uppercase;color:var(--amber);margin-bottom:.25rem;">Concept Mastery</div>
+      <div style="font-size:11px;color:var(--muted);font-weight:600;margin-bottom:.75rem;line-height:1.5;">Grade yourself 1-10 on every concept. Backtesting time should go to your lowest-graded weaknesses.</div>
+      <div id="focusNext" style="margin-bottom:.85rem;"></div>
+      <div id="masteryGrid" style="display:flex;flex-direction:column;gap:10px;max-height:340px;overflow-y:auto;"></div>
+    </div>
+
+    <!-- AI CONSULTANT -->
+    <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:14px;padding:1.1rem;margin-top:14px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.75rem;flex-wrap:wrap;gap:.5rem;">
+        <div>
+          <div style="font-family:var(--mono);font-size:8px;letter-spacing:.15em;text-transform:uppercase;color:var(--cyan);">AI Consultant — SMC Interpreter</div>
+          <div style="font-size:11px;color:var(--muted);font-weight:600;margin-top:.25rem;">Provide your market context. The AI interprets it through the SMC framework. Not financial advice.</div>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+          <input type="password" id="aiKeyInput" placeholder="Gemini API key" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:9px;padding:.4rem .7rem;border-radius:7px;outline:none;width:160px;transition:border-color .15s;">
+          <button onclick="saveAIKey()" style="font-family:var(--mono);font-size:8px;letter-spacing:.08em;padding:.4rem .75rem;border-radius:7px;border:1px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;">Save</button>
+        </div>
+      </div>
+      <textarea id="aiContext" placeholder="Describe what you see: instrument, timeframe, structure, key levels, session, any liquidity grabs, MSS, OBs or FVGs visible. The more context, the better the interpretation." rows="3" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--sans);font-weight:600;font-size:13px;padding:.6rem .8rem;border-radius:8px;outline:none;resize:vertical;margin-bottom:.65rem;line-height:1.6;"></textarea>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:.65rem;">
+        <button onclick="consultAI()" id="consultBtn" style="background:var(--cyan);color:#07090d;border:none;font-family:var(--display);font-size:11px;letter-spacing:.5px;padding:.6rem 1.25rem;border-radius:10px;cursor:pointer;transition:.2s;">Interpret</button>
+        <button onclick="populateFromEngine()" style="font-family:var(--mono);font-size:8px;letter-spacing:.08em;padding:.6rem .85rem;border-radius:10px;border:1px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;" title="Auto-fill from current Decision Engine state">← From engine</button>
+        <span style="font-family:var(--mono);font-size:8px;color:var(--muted);" id="aiStatus"></span>
+      </div>
+      <div id="aiResponse" style="display:none;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:.85rem 1rem;font-size:13px;font-weight:600;line-height:1.75;color:var(--text);white-space:pre-wrap;"></div>
+      <div style="font-size:10px;color:var(--muted);font-weight:600;margin-top:.5rem;line-height:1.5;">⚠ This is an educational interpretation tool based on SMC framework principles. It is not financial advice. Never trade based solely on AI output.</div>
+    </div>
+
+  </div>
+</section>
+
+<div class="status-toast" id="statusToast"></div>
+
+<script src="smc-data.js"></script>
+<script src="smc-engine.js"></script>
+<script>
+// ════════════════════════════════════════════════
+// APP INIT
+// ════════════════════════════════════════════════
+let activeSection = 'learn';
+let activeConceptId = null;
+let currentSymbol = 'FX:EURUSD';
+let currentTF = '240';
+
+window.onload = function() {
+  buildConceptGrid();
+  buildInstrumentGrid();
+};
+
+// ════════════════════════════════════════════════
+// SECTION SWITCHING
+// ════════════════════════════════════════════════
+function switchSection(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.section-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('section-'+id).classList.add('active');
+  document.getElementById('tab-'+id).classList.add('active');
+  activeSection = id;
+  if (id === 'apply') {
+    initApply();
+    if(currentSymbol) renderChart(currentSymbol, currentTF);
+  }
+}
+
+// ════════════════════════════════════════════════
+// LEARN — CONCEPT GRID
+// ════════════════════════════════════════════════
+function buildConceptGrid() {
+  const grid = document.getElementById('conceptGrid');
+  grid.innerHTML = SMC_DATA.concepts.map(c => `
+    <div class="concept-card ${c.status === 'placeholder' ? 'placeholder' : ''}" 
+         id="card-${c.id}"
+         onclick="${c.status === 'built' ? `openModule('${c.id}')` : ''}">
+      <span class="concept-icon">${c.icon}</span>
+      <div class="concept-name">${c.name}</div>
+      <div class="concept-cat">${c.category}</div>
+      <div class="concept-desc">${c.description}</div>
+      <span class="concept-badge ${c.status === 'built' ? 'badge-built' : 'badge-placeholder'}">
+        ${c.status === 'built' ? 'INTERACTIVE' : 'COMING'}
+      </span>
+    </div>`).join('');
+}
+
+function openModule(id) {
+  const concept = SMC_DATA.concepts.find(c => c.id === id);
+  if (!concept || concept.status !== 'built') return;
+
+  // Highlight active card
+  document.querySelectorAll('.concept-card').forEach(c => c.classList.remove('active-card'));
+  document.getElementById('card-'+id)?.classList.add('active-card');
+  activeConceptId = id;
+
+  // Populate panel
+  document.getElementById('moduleTitle').textContent = concept.icon + ' ' + concept.name;
+  document.getElementById('moduleCat').textContent = concept.category;
+  document.getElementById('moduleDesc').textContent = concept.description;
+  document.getElementById('moduleRules').innerHTML = concept.rules
+    .map(r => `<li>${r}</li>`).join('');
+
+  // Visual
+  renderModuleVisual(concept);
+
+  // Related concepts
+  const related = concept.related || [];
+  document.getElementById('moduleRelated').innerHTML = related.length
+    ? `<div style="font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-right:8px;">Related:</div>` +
+      related.map(r => {
+        const rc = SMC_DATA.concepts.find(c => c.id === r);
+        return rc ? `<span class="related-chip" onclick="openModule('${r}')">${rc.icon} ${rc.name}</span>` : '';
+      }).join('') : '';
+
+  // Open panel and scroll
+  const panel = document.getElementById('modulePanel');
+  panel.classList.add('open');
+  setTimeout(() => panel.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
+}
+
+function closeModule() {
+  document.getElementById('modulePanel').classList.remove('open');
+  document.querySelectorAll('.concept-card').forEach(c => c.classList.remove('active-card'));
+  activeConceptId = null;
+}
+
+// ════════════════════════════════════════════════
+// MODULE VISUALS — SVG / Session Clock
+// ════════════════════════════════════════════════
+function renderModuleVisual(concept) {
+  const area = document.getElementById('moduleVisual');
+  switch(concept.visual_type) {
+    case 'session_clock': area.innerHTML = buildSessionClock(); break;
+    case 'annotated_chart': area.innerHTML = buildAnnotatedChart(concept.id); break;
+    case 'timeframe_cascade': area.innerHTML = buildTFCascade(); break;
+    default: area.innerHTML = `<div style="color:var(--muted);font-family:var(--mono);font-size:10px;padding:2rem;">Visual diagram for this concept</div>`;
+  }
+}
+
+function buildSessionClock() {
+  const sessions = [
+    { name:'Asian Range', time:'18:00–03:00 NY', color:'#4a9eff', prob:'avoid', kz:false },
+    { name:'London Killzone', time:'02:00–05:00 NY · Silver Bullet 03:00–04:00', color:'#40e0d0', prob:'high', kz:true },
+    { name:'NY AM Killzone', time:'07:00–10:00 NY · Silver Bullet 10:00–11:00', color:'#ff0080', prob:'highest', kz:true },
+    { name:'NY Lunch', time:'12:00–13:00 NY', color:'#ffaa00', prob:'avoid', kz:false },
+    { name:'NY PM Window', time:'13:30–16:00 NY · Silver Bullet 14:00–15:00', color:'#9b59ff', prob:'mid', kz:true },
+  ];
+  const probClass = { avoid:'prob-avoid', low:'prob-low', mid:'prob-mid', high:'prob-high', highest:'prob-high' };
+  const probLabel = { avoid:'AVOID', low:'Low', mid:'Moderate', high:'High', highest:'Highest' };
+  return `<div class="session-clock">
+    <div style="font-family:var(--mono);font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:.65rem;">Session Map — New York Time Reference</div>
+    <div class="session-rows">
+      ${sessions.map(s => `
+        <div class="session-row">
+          <div class="session-dot" style="background:${s.color}"></div>
+          <div class="session-row-name" style="color:${s.color}">${s.name}${s.kz ? '<span class="killzone-badge">KZ</span>' : ''}</div>
+          <div class="session-row-time">${s.time}</div>
+          <div class="session-row-prob ${probClass[s.prob]}">${probLabel[s.prob]}</div>
+        </div>`).join('')}
+    </div>
+    <div style="margin-top:.85rem;padding:.65rem .75rem;background:rgba(255,170,0,0.06);border:1px solid rgba(255,170,0,0.2);border-radius:8px;font-size:11px;font-weight:600;color:var(--amber);line-height:1.6;">
+      ⚡ Weekly bias rule: In a bearish week, 80% probability the weekly HIGH forms Monday or Tuesday.<br>
+      In a bullish week, 80% probability the weekly LOW forms Monday or Tuesday.
+    </div>
+  </div>`;
+}
+
+function buildAnnotatedChart(id) {
+  const charts = {
+    market_structure: buildStructureChart(),
+    liquidity: buildLiquidityChart(),
+    fvg: buildFVGChart(),
+    order_blocks: buildOBChart(),
+  };
+  return charts[id] || `<div style="color:var(--muted);font-family:var(--mono);font-size:10px;padding:2rem;">Interactive diagram</div>`;
+}
+
+function buildStructureChart() {
+  return `<svg class="svg-chart" viewBox="0 0 620 240" xmlns="http://www.w3.org/2000/svg">
+    <style>.ann{font-family:'Space Mono',monospace;font-size:9px;}</style>
+    <!-- Correct sequence: LL → LH → HL → HH → HL → HH → LH (warning) → price breaks HL = MSS -->
+    <polyline fill="none" stroke="#40e0d0" stroke-width="1.8"
+      points="20,210 80,140 130,165 210,90 260,115 350,50 410,95 470,190 540,200"/>
+    <!-- LL -->
+    <circle cx="20" cy="210" r="4" fill="#e05050"/>
+    <text x="6" y="225" class="ann" style="fill:#e05050">LL</text>
+    <!-- LH (first rally — not yet HH) -->
+    <circle cx="80" cy="140" r="4" fill="#ffaa00"/>
+    <text x="64" y="133" class="ann" style="fill:#ffaa00">LH</text>
+    <!-- HL (higher low — structure shifts bullish) -->
+    <circle cx="130" cy="165" r="4" fill="#40b870"/>
+    <text x="114" y="180" class="ann" style="fill:#40b870">HL</text>
+    <!-- HH1 — BOS above LH -->
+    <circle cx="210" cy="90" r="4" fill="#40b870"/>
+    <text x="196" y="82" class="ann" style="fill:#40b870">HH</text>
+    <line x1="80" y1="140" x2="280" y2="140" stroke="#40b870" stroke-width="1" stroke-dasharray="5,3"/>
+    <text x="155" y="134" class="ann" style="fill:#40b870">BOS</text>
+    <!-- HL2 -->
+    <circle cx="260" cy="115" r="4" fill="#40b870"/>
+    <text x="244" y="130" class="ann" style="fill:#40b870">HL</text>
+    <!-- HH2 — continuation -->
+    <circle cx="350" cy="50" r="4" fill="#40b870"/>
+    <text x="336" y="42" class="ann" style="fill:#40b870">HH</text>
+    <line x1="210" y1="90" x2="430" y2="90" stroke="#40b870" stroke-width="1" stroke-dasharray="5,3"/>
+    <text x="300" y="84" class="ann" style="fill:#40b870">BOS</text>
+    <!-- LH — first lower high, warns of potential MSS -->
+    <circle cx="410" cy="95" r="4" fill="#e05050"/>
+    <text x="396" y="87" class="ann" style="fill:#e05050">LH ⚠</text>
+    <!-- MSS — price breaks below HL2 -->
+    <line x1="260" y1="115" x2="560" y2="115" stroke="#ff0080" stroke-width="1.2" stroke-dasharray="4,3"/>
+    <text x="462" y="109" class="ann" style="fill:#ff0080">MSS</text>
+    <!-- LL forming -->
+    <circle cx="540" cy="200" r="4" fill="#e05050"/>
+    <text x="524" y="215" class="ann" style="fill:#e05050">LL</text>
+    <text x="20" y="18" class="ann" style="fill:#40b870">Bullish structure → LH warns → MSS confirms reversal</text>
+  </svg>`;
+}
+
+function buildLiquidityChart() {
+  return `<svg class="svg-chart" viewBox="0 0 620 240" xmlns="http://www.w3.org/2000/svg">
+    <style>.ann{font-family:'Space Mono',monospace;font-size:9px;}</style>
+    <!-- BSL: equal highs — 3 matching peaks -->
+    <line x1="55" y1="68" x2="410" y2="68" stroke="#ffaa00" stroke-width="1" stroke-dasharray="4,3"/>
+    <text x="415" y="72" class="ann" style="fill:#ffaa00">BSL (=H)</text>
+    <circle cx="90" cy="68" r="5" fill="#ffaa00"/>
+    <circle cx="210" cy="68" r="5" fill="#ffaa00"/>
+    <circle cx="350" cy="68" r="5" fill="#ffaa00"/>
+    <!-- SSL: equal lows — 3 matching troughs -->
+    <line x1="55" y1="178" x2="280" y2="178" stroke="#ff0080" stroke-width="1" stroke-dasharray="4,3"/>
+    <text x="285" y="182" class="ann" style="fill:#ff0080">SSL (=L)</text>
+    <circle cx="75" cy="178" r="5" fill="#ff0080"/>
+    <circle cx="165" cy="178" r="5" fill="#ff0080"/>
+    <circle cx="255" cy="178" r="5" fill="#ff0080"/>
+    <!-- Price path: touches equal highs twice, touches equal lows twice, then grabs BSL and reverses -->
+    <polyline fill="none" stroke="#40e0d0" stroke-width="1.8"
+      points="20,130 75,178 90,68 165,178 210,68 255,178 350,68 400,178 460,68 520,130 580,95"/>
+    <!-- BSL grab label -->
+    <text x="345" y="55" class="ann" style="fill:#ffaa00">↑ BSL grabbed → reversal</text>
+    <!-- SSL grab labels -->
+    <text x="60" y="200" class="ann" style="fill:#ff0080">↓ SSL</text>
+    <text x="150" y="200" class="ann" style="fill:#ff0080">↓ SSL</text>
+    <text x="240" y="200" class="ann" style="fill:#ff0080">↓ SSL</text>
+    <!-- Final BSL grab and reversal up -->
+    <text x="455" y="56" class="ann" style="fill:#ffaa00">↑ Grab</text>
+    <text x="515" y="122" class="ann" style="fill:#40b870">Rally</text>
+  </svg>`;
+}
+
+function buildFVGChart() {
+  return `<svg class="svg-chart" viewBox="0 0 620 240" xmlns="http://www.w3.org/2000/svg">
+    <style>.ann{font-family:'Space Mono',monospace;font-size:9px;}</style>
+    <!-- Pre-move consolidation -->
+    <polyline fill="none" stroke="#40e0d0" stroke-width="1.5" points="20,175 55,168 75,158"/>
+    <!-- Candle 1: bearish (C1 high = 145, C1 low = 168) -->
+    <rect x="78" y="145" width="18" height="23" fill="#e05050" opacity=".85"/>
+    <line x1="87" y1="136" x2="87" y2="172" stroke="#e05050" stroke-width="1.5"/>
+    <!-- C1 high marker -->
+    <line x1="78" y1="145" x2="108" y2="145" stroke="#e05050" stroke-width="0.8" stroke-dasharray="2,2"/>
+    <!-- Candle 2: big bullish impulse (closes well above C1 high) -->
+    <rect x="102" y="72" width="18" height="73" fill="#40b870" opacity=".9"/>
+    <line x1="111" y1="62" x2="111" y2="148" stroke="#40b870" stroke-width="1.5"/>
+    <!-- Candle 3: opens above C1 high — C3 low = 110 > C1 high = 145? No: C3 low must be > C1 high -->
+    <!-- Let's make C3 low = 108, C1 high = 145. Gap = 108 to 145. -->
+    <rect x="126" y="80" width="18" height="28" fill="#40b870" opacity=".8"/>
+    <line x1="135" y1="72" x2="135" y2="112" stroke="#40b870" stroke-width="1.5"/>
+    <!-- C3 low marker -->
+    <line x1="108" y1="108" x2="400" y2="108" stroke="#40b870" stroke-width="0.8" stroke-dasharray="2,2"/>
+    <!-- FVG ZONE: C1 high (145) to C3 low (108) -->
+    <rect x="78" y="108" width="320" height="37" fill="rgba(64,224,208,0.1)" stroke="#40e0d0" stroke-width="1" stroke-dasharray="3,2"/>
+    <text x="84" y="100" class="ann" style="fill:#40e0d0">Bullish FVG (imbalance)</text>
+    <!-- Three entry levels -->
+    <line x1="78" y1="108" x2="398" y2="108" stroke="#40b870" stroke-width="0.7" stroke-dasharray="2,3"/>
+    <text x="402" y="111" class="ann" style="fill:#40b870">Edge (aggressive)</text>
+    <line x1="78" y1="126" x2="398" y2="126" stroke="#40e0d0" stroke-width="1" stroke-dasharray="3,2"/>
+    <text x="402" y="129" class="ann" style="fill:#40e0d0">50% (standard)</text>
+    <line x1="78" y1="145" x2="398" y2="145" stroke="#ffaa00" stroke-width="0.7" stroke-dasharray="2,3"/>
+    <text x="402" y="148" class="ann" style="fill:#ffaa00">Full fill (conservative)</text>
+    <!-- Price post-FVG continues up -->
+    <polyline fill="none" stroke="#40e0d0" stroke-width="1.5" points="148,78 180,58 220,65 260,42 295,50"/>
+    <!-- Price returns to FVG and reacts -->
+    <polyline fill="none" stroke="#40e0d0" stroke-width="1.5" points="295,50 325,85 350,120 360,115 385,90 420,68 470,45 520,30"/>
+    <text x="338" y="155" class="ann" style="fill:#40e0d0">↑ Return into FVG → react</text>
+    <text x="20" y="225" class="ann" style="fill:#5a7090">If price closes fully through FVG without reaction: setup void</text>
+  </svg>`;
+}
+
+function buildOBChart() {
+  return `<svg class="svg-chart" viewBox="0 0 620 240" xmlns="http://www.w3.org/2000/svg">
+    <style>.ann{font-family:'Space Mono',monospace;font-size:9px;}</style>
+    <!-- Consolidation before OB -->
+    <polyline fill="none" stroke="#40e0d0" stroke-width="1.5"
+      points="20,168 45,158 68,172 95,152 118,170"/>
+    <!-- OB candle: LAST bearish candle before impulse -->
+    <rect x="120" y="148" width="20" height="28" fill="#e05050" opacity=".9"/>
+    <line x1="130" y1="138" x2="130" y2="180" stroke="#e05050" stroke-width="1.5"/>
+    <!-- OB zone: full body of that candle -->
+    <rect x="120" y="148" width="340" height="28" fill="rgba(64,184,112,0.13)" stroke="#40b870" stroke-width="1"/>
+    <text x="126" y="140" class="ann" style="fill:#40b870">Bullish OB</text>
+    <!-- 50% refined level -->
+    <line x1="120" y1="162" x2="460" y2="162" stroke="#40e0d0" stroke-width="0.8" stroke-dasharray="3,2"/>
+    <text x="464" y="165" class="ann" style="fill:#40e0d0">50%</text>
+    <!-- Bullish impulse away from OB -->
+    <rect x="146" y="82" width="20" height="66" fill="#40b870" opacity=".9"/>
+    <line x1="156" y1="70" x2="156" y2="152" stroke="#40b870" stroke-width="1.5"/>
+    <rect x="172" y="72" width="18" height="42" fill="#40b870" opacity=".8"/>
+    <rect x="196" y="60" width="18" height="38" fill="#40b870" opacity=".8"/>
+    <!-- BOS: prior swing high broken -->
+    <line x1="95" y1="152" x2="380" y2="152" stroke="#40b870" stroke-width="1" stroke-dasharray="5,3"/>
+    <text x="290" y="145" class="ann" style="fill:#40b870">BOS</text>
+    <!-- Price continues up -->
+    <polyline fill="none" stroke="#40e0d0" stroke-width="1.5"
+      points="220,55 260,42 300,50 340,35 375,44"/>
+    <!-- Returns to OB zone -->
+    <polyline fill="none" stroke="#40e0d0" stroke-width="1.5"
+      points="375,44 400,105 425,150 440,158 452,162"/>
+    <!-- Reacts from OB -->
+    <polyline fill="none" stroke="#40e0d0" stroke-width="1.5"
+      points="452,162 478,115 510,92 550,60 590,42"/>
+    <text x="418" y="185" class="ann" style="fill:#40b870">↑ Reaction from OB</text>
+    <text x="20" y="222" class="ann" style="fill:#5a7090">OB invalid if price CLOSES through full body (wick through = still valid)</text>
+  </svg>`;
+}
+
+function buildTFCascade() {
+  const tfs = [
+    { tf:'Monthly', role:'Overall structure & direction', color:'var(--amber)' },
+    { tf:'Weekly', role:'Premium / Discount, weekly bias', color:'var(--pink)' },
+    { tf:'Daily', role:'OBs and FVGs to target', color:'var(--violet)' },
+    { tf:'4H', role:'Refined arrays, structural shifts', color:'var(--cyan)' },
+    { tf:'1H', role:'Entry array identification', color:'var(--blue)' },
+    { tf:'15M', role:'MSS confirmation + trigger', color:'var(--green)' },
+    { tf:'5M/1M', role:'Precision entry refinement', color:'var(--muted)' },
+  ];
+  return `<div style="width:100%;padding:1rem;">
+    ${tfs.map((t,i) => `
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;padding:.5rem .75rem;background:var(--bg3);border-radius:8px;border-left:2px solid ${t.color};">
+        <div style="font-family:var(--display);font-size:11px;color:${t.color};width:60px;flex-shrink:0;">${t.tf}</div>
+        <div style="font-size:11px;font-weight:600;color:var(--text);">${t.role}</div>
+        ${i < 6 ? `<div style="margin-left:auto;font-family:var(--mono);font-size:9px;color:var(--muted);">↓</div>` : ''}
+      </div>`).join('')}
+    <div style="padding:.6rem .75rem;background:rgba(64,224,208,0.06);border:1px solid rgba(64,224,208,0.2);border-radius:8px;font-size:11px;font-weight:600;color:var(--cyan);margin-top:.5rem;line-height:1.6;">
+      Rule: Never trade against the monthly or weekly structure — no matter how clean the entry timeframe looks.
+    </div>
+  </div>`;
+}
+
+// ════════════════════════════════════════════════
+// DECISION ENGINE
+// ════════════════════════════════════════════════
+function setField(btn, field, value, colorClass) {
+  // Clear siblings
+  const group = btn.parentElement;
+  group.querySelectorAll('.opt-btn').forEach(b => {
+    b.classList.remove('active','active-bull','active-bear','active-warn');
+  });
+  // Set active
+  const cls = colorClass === 'bull' ? 'active-bull'
+    : colorClass === 'bear' ? 'active-bear'
+    : colorClass === 'warn' ? 'active-warn' : 'active';
+  btn.classList.add(cls);
+  SMCEngine.set(field, value);
+  evalEngine();
+}
+
+function evalEngine() {
+  const { gates, total, tier, direction, weekly_warning, dol_warning } = SMCEngine.evaluateGates();
+
+  // Score circle
+  const circle = document.getElementById('scoreCircle');
+  circle.style.borderColor = tier.color;
+  document.getElementById('scoreNum').style.color = tier.color;
+  document.getElementById('scoreNum').textContent = total;
+  document.getElementById('resultTier').textContent = tier.label;
+  document.getElementById('resultTier').style.color = tier.color;
+  document.getElementById('resultAction').textContent = tier.action;
+
+  // Direction badge
+  const dirClass = direction.includes('LONG') ? 'dir-long' : direction.includes('SHORT') ? 'dir-short' : 'dir-neutral';
+  document.getElementById('directionWrap').innerHTML = `<span class="result-direction ${dirClass}">${direction}</span>`;
+
+  // Sequential gates breakdown — locked gates render dimmed with a lock icon
+  document.getElementById('gatesBreakdown').innerHTML = Object.values(gates).map(g => `
+    <div class="gate-row" style="${g.locked ? 'opacity:.4;' : ''}">
+      <div class="gate-status ${g.locked ? '' : g.pass ? 'gate-pass' : g.score > 0 ? 'gate-warn' : 'gate-fail'}" style="${g.locked ? 'background:var(--muted);' : ''}"></div>
+      <div class="gate-row-label">${g.locked ? '🔒 ' : ''}${g.label}</div>
+      <div class="gate-row-score">${g.score}/${g.max}</div>
+    </div>
+    <div class="gate-detail" style="${g.locked ? 'opacity:.6;font-style:italic;' : ''}">${g.detail}</div>`).join('');
+
+  // Weekly warning
+  document.getElementById('weeklyWarning').innerHTML = weekly_warning
+    ? `<div class="warning-box">⚡ ${weekly_warning}</div>` : '';
+
+  // DOL warning
+  document.getElementById('dolWarning').innerHTML = dol_warning
+    ? `<div class="warning-box" style="border-color:var(--violet);color:var(--violet);">🧲 ${dol_warning}</div>` : '';
+}
+
+function resetEngine() {
+  SMCEngine.reset();
+  document.getElementById('rrInput').value = '';
+  document.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('active','active-bull','active-bear','active-warn'));
+  document.getElementById('scoreNum').textContent = '—';
+  document.getElementById('resultTier').textContent = '—';
+  document.getElementById('resultAction').textContent = 'Fill in Direction to begin — Stage and Entry unlock as you go';
+  document.getElementById('scoreCircle').style.borderColor = 'var(--cyan)';
+  document.getElementById('scoreNum').style.color = 'var(--cyan)';
+  document.getElementById('directionWrap').innerHTML = '';
+  document.getElementById('gatesBreakdown').innerHTML = '';
+  document.getElementById('weeklyWarning').innerHTML = '';
+  document.getElementById('dolWarning').innerHTML = '';
+}
+
+// ════════════════════════════════════════════════
+// APPLY — INSTRUMENT GRID + TRADINGVIEW
+// ════════════════════════════════════════════════
+function buildInstrumentGrid() {
+  const grid = document.getElementById('instrumentGrid');
+  grid.innerHTML = SMC_DATA.instruments.map(inst => `
+    <div class="instrument-btn ${inst.symbol === currentSymbol ? 'active' : ''}"
+         onclick="selectInstrument(this,'${inst.symbol}','${inst.label}')">
+      <span class="instrument-icon">${inst.icon}</span>
+      <div class="instrument-label">${inst.label}</div>
+      <div class="instrument-type">${inst.type}</div>
+    </div>`).join('');
+}
+
+function selectInstrument(btn, symbol, label) {
+  document.querySelectorAll('.instrument-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentSymbol = symbol;
+  document.getElementById('chartSymbolLabel').textContent = label;
+  renderChart(symbol, currentTF);
+}
+
+function setTF(btn, tf) {
+  document.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentTF = tf;
+  renderChart(currentSymbol, tf);
+}
+
+function renderChart(symbol, tf) {
+  const container = document.getElementById('tradingview-widget');
+  container.innerHTML = '';
+  const script = document.createElement('script');
+  script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';
+  script.async = true;
+  script.innerHTML = JSON.stringify({
+    symbol,
+    interval: tf,
+    timezone: 'America/New_York',
+    theme: 'dark',
+    style: '1',
+    locale: 'en',
+    hide_top_toolbar: false,
+    hide_legend: false,
+    allow_symbol_change: false,
+    save_image: true,
+    backgroundColor: 'rgba(7,9,13,1)',
+    gridColor: 'rgba(64,224,208,0.06)',
+    width: '100%',
+    height: 520,
+  });
+  container.appendChild(script);
+}
+
+// ════════════════════════════════════════════════
+// TRADE IDEA JOURNAL
+// ════════════════════════════════════════════════
+function toggleJournal(){
+  const f=document.getElementById('journalForm');
+  f.style.display=f.style.display==='none'?'block':'none';
+  if(f.style.display==='block') populateInstrumentSelects();
+}
+
+function populateInstrumentSelects(){
+  const opts = SMC_DATA.instruments.map(i=>`<option value="${i.label}">${i.icon} ${i.label}</option>`).join('');
+  ['jInstrument','btInstrument','prInstrument','dpInstrument'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el&&!el.options.length) el.innerHTML='<option value="">Instrument...</option>'+opts;
+  });
+}
+
+function saveIdea(){
+  const idea={
+    id:'i_'+Date.now(), type:'idea',
+    journalType:document.getElementById('jType').value,
+    instrument:document.getElementById('jInstrument').value,
+    bias:document.getElementById('jBias').value,
+    entry:document.getElementById('jEntry').value,
+    stop:document.getElementById('jStop').value,
+    target:document.getElementById('jTarget').value,
+    notes:document.getElementById('jNotes').value,
+    feeling:document.getElementById('jFeeling').value,
+    score:SMCEngine.evaluateGates().total,
+    status:'active', ts:Date.now()
+  };
+  if(!idea.instrument||!idea.bias){toast('Select instrument and bias');return;}
+  const ideas=loadStore('smc_ideas');
+  ideas.unshift(idea);
+  saveStore('smc_ideas',ideas);
+  renderIdeas();
+  document.getElementById('journalForm').style.display='none';
+  ['jEntry','jStop','jTarget','jNotes','jFeeling'].forEach(id=>document.getElementById(id).value='');
+  toast('Idea saved ✓');
+}
+
+function renderIdeas(){
+  const list=document.getElementById('ideaList');
+  const ideas=loadStore('smc_ideas');
+  if(!ideas.length){list.innerHTML='<div style="font-family:var(--mono);font-size:9px;color:var(--muted);padding:.5rem;">No ideas saved yet.</div>';return;}
+  const typeIcon={backtest:'📓',forward:'🔬',live:'🔴'};
+  const typeLabel={backtest:'Backtest',forward:'Forward-test',live:'Live'};
+  list.innerHTML=ideas.map(i=>{
+    const biasCol=i.bias==='long'?'var(--green)':'var(--red)';
+    const statusCol=i.status==='win'?'var(--green)':i.status==='loss'?'var(--red)':i.status==='be'?'var(--amber)':'var(--cyan)';
+    const jt=i.journalType||'backtest';
+    return `<div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:.55rem .7rem;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:3px;">
+        <div style="font-family:var(--display);font-size:11px;color:${biasCol};">${i.instrument} <span style="font-size:9px;">${i.bias?.toUpperCase()}</span> <span style="font-size:8px;color:var(--muted);font-family:var(--mono);">${typeIcon[jt]} ${typeLabel[jt]}</span></div>
+        <div style="display:flex;gap:5px;align-items:center;">
+          <span style="font-family:var(--mono);font-size:7px;color:var(--muted);">score: ${i.score}</span>
+          <select onchange="updateIdeaStatus('${i.id}',this.value)" style="background:var(--bg2);border:1px solid var(--border);color:${statusCol};font-family:var(--mono);font-size:7px;padding:1px 3px;border-radius:5px;outline:none;">
+            <option value="active" ${i.status==='active'?'selected':''}>Active</option>
+            <option value="win" ${i.status==='win'?'selected':''}>Win</option>
+            <option value="loss" ${i.status==='loss'?'selected':''}>Loss</option>
+            <option value="be" ${i.status==='be'?'selected':''}>BE</option>
+          </select>
+          <button onclick="deleteIdea('${i.id}')" style="background:none;border:none;color:var(--muted);font-size:10px;cursor:pointer;">✕</button>
+        </div>
+      </div>
+      ${i.entry?`<div style="font-family:var(--mono);font-size:8px;color:var(--muted);">E:${i.entry} SL:${i.stop||'—'} TP:${i.target||'—'}</div>`:''}
+      ${i.notes?`<div style="font-size:10px;color:var(--text);font-weight:600;margin-top:3px;">${escHtml(i.notes)}</div>`:''}
+      ${i.feeling?`<div style="font-size:10px;color:var(--violet);font-weight:600;margin-top:3px;font-style:italic;">💭 ${escHtml(i.feeling)}</div>`:''}
+      <div style="font-family:var(--mono);font-size:7px;color:var(--muted);margin-top:3px;">${new Date(i.ts).toLocaleString()}</div>
+    </div>`;
+  }).join('');
+}
+
+function updateIdeaStatus(id,status){
+  const ideas=loadStore('smc_ideas');
+  const idx=ideas.findIndex(i=>i.id===id);
+  if(idx>=0){ideas[idx].status=status;saveStore('smc_ideas',ideas);}
+}
+
+function deleteIdea(id){
+  saveStore('smc_ideas',loadStore('smc_ideas').filter(i=>i.id!==id));
+  renderIdeas();
+}
+
+// ════════════════════════════════════════════════
+// BACKTEST LOG
+// ════════════════════════════════════════════════
+function toggleBacktest(){
+  const f=document.getElementById('backtestForm');
+  f.style.display=f.style.display==='none'?'block':'none';
+  if(f.style.display==='block') populateInstrumentSelects();
+}
+
+function saveBacktest(){
+  const bt={
+    id:'b_'+Date.now(),
+    instrument:document.getElementById('btInstrument').value,
+    outcome:document.getElementById('btOutcome').value,
+    score:parseInt(document.getElementById('btScore').value)||0,
+    rr:document.getElementById('btRR').value,
+    notes:document.getElementById('btNotes').value,
+    ts:Date.now()
+  };
+  if(!bt.instrument||!bt.outcome){toast('Select instrument and outcome');return;}
+  const log=loadStore('smc_backtest');
+  log.unshift(bt);
+  saveStore('smc_backtest',log);
+  renderBacktest();
+  document.getElementById('backtestForm').style.display='none';
+  ['btScore','btRR','btNotes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('btOutcome').value='';
+  toast('Setup logged ✓');
+}
+
+function renderBacktest(){
+  const log=loadStore('smc_backtest');
+  const wins=log.filter(b=>b.outcome==='win').length;
+  const losses=log.filter(b=>b.outcome==='loss').length;
+  const total=log.length;
+  const wr=total?Math.round(wins/total*100):0;
+  const avgScore=total?Math.round(log.reduce((a,b)=>a+b.score,0)/total):0;
+  document.getElementById('btStats').innerHTML=total?`
+    <div style="font-family:var(--mono);font-size:9px;padding:3px 8px;border-radius:7px;background:var(--bg3);border:1px solid var(--border);">
+      <span style="color:var(--green);">${wins}W</span> <span style="color:var(--red);">${losses}L</span> ${total-wins-losses>0?`<span style="color:var(--amber);">${total-wins-losses}BE</span>`:''}
+    </div>
+    <div style="font-family:var(--mono);font-size:9px;padding:3px 8px;border-radius:7px;background:var(--bg3);border:1px solid var(--border);color:var(--cyan);">${wr}% WR</div>
+    <div style="font-family:var(--mono);font-size:9px;padding:3px 8px;border-radius:7px;background:var(--bg3);border:1px solid var(--border);color:var(--muted);">avg score: ${avgScore}</div>
+  `:'';
+  const list=document.getElementById('btList');
+  if(!log.length){list.innerHTML='<div style="font-family:var(--mono);font-size:9px;color:var(--muted);padding:.5rem;">No setups logged yet.</div>';return;}
+  list.innerHTML=log.map(b=>{
+    const col=b.outcome==='win'?'var(--green)':b.outcome==='loss'?'var(--red)':'var(--amber)';
+    return `<div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:.5rem .7rem;display:flex;gap:8px;align-items:flex-start;">
+      <div style="font-family:var(--display);font-size:11px;color:${col};flex-shrink:0;padding-top:2px;">${b.outcome?.toUpperCase()}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-family:var(--mono);font-size:9px;color:var(--text);">${b.instrument} ${b.rr?'· R:R '+b.rr:''} · score ${b.score}</div>
+        ${b.notes?`<div style="font-size:10px;color:var(--muted);font-weight:600;margin-top:2px;">${escHtml(b.notes)}</div>`:''}
+        <div style="font-family:var(--mono);font-size:7px;color:var(--muted);margin-top:2px;">${new Date(b.ts).toLocaleString()}</div>
+      </div>
+      <button onclick="deleteBacktest('${b.id}')" style="background:none;border:none;color:var(--muted);font-size:10px;cursor:pointer;flex-shrink:0;">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function deleteBacktest(id){
+  saveStore('smc_backtest',loadStore('smc_backtest').filter(b=>b.id!==id));
+  renderBacktest();
+}
+
+// ════════════════════════════════════════════════
+// PRACTICE LOG — Pattern Recognition / Data Collection / Delivery of Price
+// ════════════════════════════════════════════════
+let practiceMode = 'pattern';
+let dpPrediction = null;
+
+function setPracticeMode(mode, btn){
+  practiceMode = mode;
+  document.querySelectorAll('.practice-mode-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.practice-form').forEach(f=>f.style.display='none');
+  document.getElementById('practiceForm-'+mode).style.display='block';
+  if(mode==='pattern') renderPatternTally();
+  if(mode==='data') renderDataTally();
+  if(mode==='delivery'){ renderDeliveryPending(); renderDeliveryAccuracy(); }
+}
+
+// ── Pattern Recognition ──
+function logPattern(){
+  const entry={ id:'p_'+Date.now(), array:document.getElementById('prArray').value,
+    instrument:document.getElementById('prInstrument').value,
+    notes:document.getElementById('prNotes').value, ts:Date.now() };
+  const log=loadStore('smc_pattern_log'); log.unshift(entry); saveStore('smc_pattern_log',log);
+  document.getElementById('prNotes').value='';
+  renderPatternTally();
+  toast('Example logged ✓');
+}
+function renderPatternTally(){
+  const log=loadStore('smc_pattern_log');
+  const counts={};
+  log.forEach(e=>{ counts[e.array]=(counts[e.array]||0)+1; });
+  const labels={fvg:'FVG',ob:'Order Block',breaker:'Breaker',mitigation:'Mitigation',rejection:'Rejection',ote:'OTE',turtle_soup:'Turtle Soup',iofed:'IOFED'};
+  const el=document.getElementById('patternTally');
+  if(!el) return;
+  el.innerHTML=Object.keys(labels).map(k=>{
+    const n=counts[k]||0;
+    const pct=Math.min(100,Math.round(n/20*100));
+    const col=n>=20?'var(--green)':n>=10?'var(--amber)':'var(--muted)';
+    return `<div style="background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:5px 9px;font-family:var(--mono);font-size:8px;color:${col};">${labels[k]}: ${n}/20</div>`;
+  }).join('');
+}
+
+// ── Data Collection ──
+function logData(observed){
+  const stat=document.getElementById('dcStat').value.trim();
+  if(!stat){ toast('Name the statistic first'); return; }
+  const log=loadStore('smc_data_log');
+  log.unshift({ id:'d_'+Date.now(), stat, observed, ts:Date.now() });
+  saveStore('smc_data_log',log);
+  renderDataTally();
+  toast('Observation logged ✓');
+}
+function renderDataTally(){
+  const log=loadStore('smc_data_log');
+  const byStat={};
+  log.forEach(e=>{ if(!byStat[e.stat]) byStat[e.stat]={yes:0,no:0}; byStat[e.stat][e.observed?'yes':'no']++; });
+  const el=document.getElementById('dataTally');
+  if(!el) return;
+  const keys=Object.keys(byStat);
+  if(!keys.length){ el.innerHTML='<div style="font-family:var(--mono);font-size:9px;color:var(--muted);">No data points logged yet.</div>'; return; }
+  el.innerHTML=keys.map(k=>{
+    const {yes,no}=byStat[k]; const total=yes+no; const pct=total?Math.round(yes/total*100):0;
+    return `<div style="background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:6px 9px;">
+      <div style="font-family:var(--mono);font-size:9px;color:var(--text);">${escHtml(k)}</div>
+      <div style="font-family:var(--mono);font-size:8px;color:var(--cyan);margin-top:2px;">${pct}% observed (${yes}/${total})</div>
+    </div>`;
+  }).join('');
+}
+
+// ── Delivery of Price ──
+function setDpPrediction(v,btn){
+  dpPrediction=v;
+  document.querySelectorAll('.dp-pred-btn').forEach(b=>b.classList.remove('active-bull','active-bear'));
+  btn.classList.add(v==='bullish'?'active-bull':'active-bear');
+}
+function logDelivery(){
+  const instrument=document.getElementById('dpInstrument').value;
+  if(!instrument||!dpPrediction){ toast('Select instrument and prediction'); return; }
+  const log=loadStore('smc_delivery_log');
+  log.unshift({ id:'dp_'+Date.now(), instrument, prediction:dpPrediction, outcome:null, ts:Date.now() });
+  saveStore('smc_delivery_log',log);
+  dpPrediction=null;
+  document.querySelectorAll('.dp-pred-btn').forEach(b=>b.classList.remove('active-bull','active-bear'));
+  renderDeliveryPending();
+  toast('Prediction logged — grade it once you know the outcome');
+}
+function gradeDelivery(id,correct){
+  const log=loadStore('smc_delivery_log');
+  const idx=log.findIndex(e=>e.id===id);
+  if(idx>=0){ log[idx].outcome=correct; saveStore('smc_delivery_log',log); }
+  renderDeliveryPending();
+  renderDeliveryAccuracy();
+}
+function renderDeliveryPending(){
+  const log=loadStore('smc_delivery_log').filter(e=>e.outcome===null);
+  const el=document.getElementById('deliveryPending');
+  if(!el) return;
+  if(!log.length){ el.innerHTML=''; return; }
+  el.innerHTML=log.slice(0,8).map(e=>`
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:5px 9px;display:flex;justify-content:space-between;align-items:center;gap:6px;">
+      <span style="font-family:var(--mono);font-size:9px;color:var(--text);">${e.instrument} · predicted ${e.prediction==='bullish'?'▲':'▼'}</span>
+      <div style="display:flex;gap:4px;">
+        <button onclick="gradeDelivery('${e.id}',true)" style="background:none;border:1px solid var(--green);color:var(--green);font-size:8px;padding:2px 7px;border-radius:5px;cursor:pointer;font-family:var(--mono);">✓ Correct</button>
+        <button onclick="gradeDelivery('${e.id}',false)" style="background:none;border:1px solid var(--red);color:var(--red);font-size:8px;padding:2px 7px;border-radius:5px;cursor:pointer;font-family:var(--mono);">✗ Wrong</button>
+      </div>
+    </div>`).join('');
+}
+function renderDeliveryAccuracy(){
+  const log=loadStore('smc_delivery_log').filter(e=>e.outcome!==null);
+  const el=document.getElementById('deliveryAccuracy');
+  if(!el) return;
+  if(!log.length){ el.innerHTML='No graded predictions yet.'; return; }
+  const correct=log.filter(e=>e.outcome===true).length;
+  const pct=Math.round(correct/log.length*100);
+  el.innerHTML=`Accuracy: <span style="color:var(--violet);">${pct}%</span> (${correct}/${log.length} graded predictions)`;
+}
+
+// ════════════════════════════════════════════════
+// CONCEPT MASTERY — spaced-repetition self-grading
+// ════════════════════════════════════════════════
+function buildMasteryGrid(){
+  const grades=JSON.parse(localStorage.getItem('smc_mastery')||'{}');
+  const byCategory={};
+  SMC_DATA.concepts.forEach(c=>{ if(!byCategory[c.category]) byCategory[c.category]=[]; byCategory[c.category].push(c); });
+  const grid=document.getElementById('masteryGrid');
+  if(!grid) return;
+  grid.innerHTML=Object.keys(byCategory).map(cat=>`
+    <div>
+      <div style="font-family:var(--mono);font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:5px;">${cat}</div>
+      <div style="display:flex;flex-direction:column;gap:4px;">
+        ${byCategory[cat].map(c=>{
+          const g=grades[c.id]??'';
+          return `<div style="display:flex;align-items:center;gap:8px;background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:5px 9px;">
+            <span style="flex:1;font-size:11px;font-weight:600;color:var(--text);cursor:pointer;" onclick="switchSection('learn');openModule('${c.id}')">${c.icon} ${c.name}</span>
+            <input type="number" min="0" max="10" value="${g}" placeholder="—" oninput="setMastery('${c.id}',this.value)" style="width:36px;text-align:center;background:var(--bg2);border:1px solid var(--border2);color:var(--amber);font-family:var(--mono);font-size:10px;padding:3px;border-radius:5px;outline:none;">
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`).join('');
+  renderFocusNext(grades);
+}
+function setMastery(id,val){
+  const grades=JSON.parse(localStorage.getItem('smc_mastery')||'{}');
+  if(val===''){ delete grades[id]; } else { grades[id]=Math.max(0,Math.min(10,parseInt(val)||0)); }
+  localStorage.setItem('smc_mastery',JSON.stringify(grades));
+  renderFocusNext(grades);
+}
+function renderFocusNext(grades){
+  const el=document.getElementById('focusNext');
+  if(!el) return;
+  const graded=SMC_DATA.concepts.map(c=>({...c,grade:grades[c.id]??null}));
+  const weakest=graded.filter(c=>c.grade!==null).sort((a,b)=>a.grade-b.grade).slice(0,3);
+  const ungraded=graded.filter(c=>c.grade===null).length;
+  if(!weakest.length){
+    el.innerHTML=`<div style="font-family:var(--mono);font-size:9px;color:var(--muted);">Grade a few concepts to see your focus areas. ${ungraded} concepts not yet graded.</div>`;
+    return;
+  }
+  el.innerHTML=`<div style="font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--amber);margin-bottom:5px;">🎯 Focus next</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;">
+      ${weakest.map(c=>`<div style="background:rgba(255,170,0,0.08);border:1px solid rgba(255,170,0,0.3);border-radius:20px;padding:4px 11px;font-family:var(--mono);font-size:9px;color:var(--amber);cursor:pointer;" onclick="switchSection('learn');openModule('${c.id}')">${c.icon} ${c.name} (${c.grade}/10)</div>`).join('')}
+    </div>`;
+}
+
+// ════════════════════════════════════════════════
+// AI CONSULTANT
+// ════════════════════════════════════════════════
+const AI_SYSTEM = `You are an expert Smart Money Concepts (SMC) market analyst and educational consultant. You interpret market context through the SMC framework only. You speak in precise SMC vocabulary: order blocks, fair value gaps, market structure shifts (MSS), liquidity grabs, killzones, premium/discount, top-down analysis, optimal trade entry (OTE).
+
+You NEVER give financial advice or tell anyone to buy or sell. You interpret and educate.
+
+When given a market description you provide:
+1. Structure read — what the HTF and LTF structure suggests
+2. Liquidity — where the likely grab targets are (BSL/SSL)
+3. Key arrays — any OBs or FVGs that are relevant
+4. Time context — which session/killzone is relevant and why
+5. What to watch for — specific conditions that would confirm or invalidate a setup
+
+Be concise, precise, and use the framework vocabulary throughout. If the context given is insufficient, ask one specific clarifying question.`;
+
+function saveAIKey(){
+  const key=document.getElementById('aiKeyInput').value.trim();
+  if(!key) return;
+  localStorage.setItem('smc_ai_key',key);
+  document.getElementById('aiStatus').textContent='Key saved ✓';
+  setTimeout(()=>document.getElementById('aiStatus').textContent='',2000);
+}
+
+function populateFromEngine(){
+  const s=SMCEngine.state;
+  const {total,tier,direction}=SMCEngine.evaluateGates();
+  const sym=document.getElementById('chartSymbolLabel').textContent;
+  const arrayLabels={ob:'Order Block',fvg:'FVG',mitigation:'Mitigation Block',ote:'OTE',iofed:'IOFED'};
+  const parts=[
+    sym&&sym!=='Select an instrument above'?`Instrument: ${sym}`:'',
+    s.weekly_daily_bias?`Weekly/Daily bias: ${s.weekly_daily_bias}`:'',
+    s.monthly_context?`Monthly context: ${s.monthly_context}`:'',
+    s.dol_identified!==null?`Draw on Liquidity identified: ${s.dol_identified?'yes':'no'}`:'',
+    s.erl_irl_aligned!==null?`External/Internal range liquidity aligned: ${s.erl_irl_aligned?'yes':'no'}`:'',
+    s.session?`Current session: ${s.session}`:'',
+    s.stage_model?`Stage model: ${s.stage_model.toUpperCase()}`:'',
+    s.htf_array_present?`HTF PD Array present: yes (${s.htf_array_tf||'unspecified TF'})`:'',
+    s.cisod_displacement?`CISOD displacement confirmed: yes`:'',
+    s.cisod_confirmation?`CISOD confirmation: ${s.cisod_confirmation==='fvg_cut'?'FVG cut':'MSS'} on ${s.cisod_tf||'LTF'}`:'',
+    s.entry_array_type?`Entry array: ${arrayLabels[s.entry_array_type]||s.entry_array_type}`:'',
+    s.rr_ratio?`R:R: ${s.rr_ratio}:1`:'',
+    s.target_identified?`Liquidity target identified: yes`:'',
+    `Engine score: ${total}/100 (${tier.label})`,
+    direction!=='NEUTRAL'?`Direction signal: ${direction}`:'',
+  ].filter(Boolean).join('\n');
+  document.getElementById('aiContext').value=parts||'No engine data yet — fill in the Decision Engine first.';
+}
+
+async function consultAI(){
+  const key=localStorage.getItem('smc_ai_key')||document.getElementById('aiKeyInput').value.trim();
+  if(!key){toast('Add your Gemini API key first');return;}
+  const ctx=document.getElementById('aiContext').value.trim();
+  if(!ctx){toast('Describe the market context first');return;}
+  const btn=document.getElementById('consultBtn');
+  btn.textContent='Reading...'; btn.disabled=true;
+  document.getElementById('aiStatus').textContent='';
+  document.getElementById('aiResponse').style.display='none';
+  try{
+    const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`,{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        system_instruction:{parts:[{text:AI_SYSTEM}]},
+        contents:[{role:'user',parts:[{text:ctx}]}],
+        generationConfig:{temperature:0.6,maxOutputTokens:900}
+      })
+    });
+    if(!res.ok){const e=await res.json();throw new Error(e?.error?.message||'API error');}
+    const data=await res.json();
+    const text=data.candidates?.[0]?.content?.parts?.[0]?.text;
+    if(!text) throw new Error('Empty response');
+    const respEl=document.getElementById('aiResponse');
+    respEl.textContent=text.trim();
+    respEl.style.display='block';
+  }catch(e){
+    toast('AI error: '+e.message);
+    document.getElementById('aiStatus').textContent='Error: '+e.message;
+  }
+  btn.textContent='Interpret'; btn.disabled=false;
+}
+
+// ── LOCAL STORAGE HELPERS ──
+function loadStore(key){ try{return JSON.parse(localStorage.getItem(key)||'[]');}catch(e){return[];} }
+function saveStore(key,val){ localStorage.setItem(key,JSON.stringify(val)); }
+function escHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// Init apply section data
+function initApply(){
+  populateInstrumentSelects();
+  renderIdeas();
+  renderBacktest();
+  renderPatternTally();
+  renderDataTally();
+  renderDeliveryPending();
+  renderDeliveryAccuracy();
+  buildMasteryGrid();
+  const key=localStorage.getItem('smc_ai_key');
+  if(key) document.getElementById('aiKeyInput').value=key;
+}
+
+// ── UTILS ──────────────────────────────────────
+function toast(msg) {
+  const el = document.getElementById('statusToast');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('show'), 2500);
+}
+</script>
+</body>
+</html>
