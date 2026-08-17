@@ -43,14 +43,19 @@
     <p class="section-sub">Master the price delivery algorithm. Every concept builds on the last. Start with Market Structure — everything else flows from understanding how price moves and why.</p>
 
     <div class="concept-grid" id="conceptGrid"></div>
+  </div>
 
-    <!-- MODULE DETAIL PANEL -->
-    <div class="module-panel" id="modulePanel">
+  <!-- MODULE DETAIL — OVERLAY (bottom sheet on mobile, side drawer on desktop) -->
+  <div class="module-backdrop" id="moduleBackdrop" onclick="closeModule()"></div>
+  <div class="module-panel" id="modulePanel">
+    <div class="module-drag-handle" id="moduleDragHandle"></div>
+    <div class="module-panel-scroll">
       <div class="module-header">
         <div>
           <div class="module-title" id="moduleTitle">—</div>
           <div style="display:flex;gap:6px;align-items:center;margin-top:.3rem;">
             <span class="pill" id="moduleCat">—</span>
+            <span class="pill" id="moduleMastery" style="display:none;"></span>
           </div>
         </div>
         <button class="module-close" onclick="closeModule()">✕ Close</button>
@@ -77,7 +82,33 @@
       <!-- FORM -->
       <div class="engine-form">
 
-        <!-- GATE 1: DIRECTION -->
+        <!-- STEPPER -->
+        <div class="wizard-stepper">
+          <button class="wizard-pill current" id="wizPill-1" onclick="goToStep(1)">
+            <span class="wizard-pill-num">01</span>
+            <span class="wizard-pill-label">Direction</span>
+          </button>
+          <button class="wizard-pill locked" id="wizPill-2" onclick="goToStep(2)" disabled>
+            <span class="wizard-pill-icon">🔒</span>
+            <span class="wizard-pill-num">02</span>
+            <span class="wizard-pill-label">Stage</span>
+          </button>
+          <button class="wizard-pill locked" id="wizPill-3" onclick="goToStep(3)" disabled>
+            <span class="wizard-pill-icon">🔒</span>
+            <span class="wizard-pill-num">03</span>
+            <span class="wizard-pill-label">Entry</span>
+          </button>
+        </div>
+
+        <!-- PERSISTENT SCORE STRIP — always visible, no scrolling needed -->
+        <div class="wizard-score-strip">
+          <div class="wss-num" id="wssNum" style="color:var(--muted);">—</div>
+          <div class="wss-label" id="wssLabel">Fill in Direction to begin</div>
+          <div id="wssDirection"></div>
+        </div>
+
+        <!-- STEP 1: DIRECTION -->
+        <div class="wizard-step active" id="wizStep-1">
         <div class="gate-group">
           <div class="gate-group-title"><span class="gate-num">01</span> Direction</div>
           <div style="font-size:10px;color:var(--muted);font-weight:600;margin-bottom:.75rem;line-height:1.6;">Weekly/Daily bias + Draw on Liquidity. This is the anchor — nothing below matters until this passes.</div>
@@ -129,10 +160,13 @@
             </div>
           </div>
         </div>
+        <div class="wizard-nav">
+          <button class="wizard-next-btn" id="wizNext-1" onclick="goToStep(2)" disabled>Continue to Stage →</button>
+        </div>
+        </div><!-- /wizStep-1 -->
 
-        <hr class="divider">
-
-        <!-- GATE 2: STAGE -->
+        <!-- STEP 2: STAGE -->
+        <div class="wizard-step" id="wizStep-2">
         <div class="gate-group">
           <div class="gate-group-title"><span class="gate-num">02</span> Stage <span style="font-size:8px;color:var(--muted);font-weight:600;text-transform:none;letter-spacing:0;">— locked until Direction passes</span></div>
           <div style="font-size:10px;color:var(--muted);font-weight:600;margin-bottom:.75rem;line-height:1.6;">Is the market actually creating the conditions for the move? "No stage = no trade."</div>
@@ -192,10 +226,14 @@
             </div>
           </div>
         </div>
+        <div class="wizard-nav">
+          <button class="wizard-back-btn" onclick="goToStep(1)">← Back</button>
+          <button class="wizard-next-btn" id="wizNext-2" onclick="goToStep(3)" disabled>Continue to Entry →</button>
+        </div>
+        </div><!-- /wizStep-2 -->
 
-        <hr class="divider">
-
-        <!-- GATE 3: ENTRY -->
+        <!-- STEP 3: ENTRY -->
+        <div class="wizard-step" id="wizStep-3">
         <div class="gate-group">
           <div class="gate-group-title"><span class="gate-num">03</span> Entry <span style="font-size:8px;color:var(--muted);font-weight:600;text-transform:none;letter-spacing:0;">— locked until Stage passes</span></div>
           <div style="font-size:10px;color:var(--muted);font-weight:600;margin-bottom:.75rem;line-height:1.6;">"The entry is the easiest part." Execution only, once Stage has already confirmed the move.</div>
@@ -222,6 +260,10 @@
             </div>
           </div>
         </div>
+        <div class="wizard-nav">
+          <button class="wizard-back-btn" onclick="goToStep(2)">← Back</button>
+        </div>
+        </div><!-- /wizStep-3 -->
 
         <div class="engine-actions">
           <button class="eval-btn" onclick="evalEngine()">Evaluate Setup</button>
@@ -279,7 +321,38 @@
     </div>
 
     <!-- APPLY TOOLS ROW -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:1.5rem;" class="apply-tools-grid">
+    <!-- APPLY SUB-TABS -->
+    <div class="apply-subtabs" id="applySubtabs">
+      <button class="apply-subtab active" data-pane="journal" onclick="switchApplyPane('journal',this)">
+        <span class="apply-subtab-icon">📓</span>
+        <span class="apply-subtab-badge" id="badge-journal">0</span>
+        <span class="apply-subtab-label">Journal</span>
+      </button>
+      <button class="apply-subtab" data-pane="backtest" onclick="switchApplyPane('backtest',this)">
+        <span class="apply-subtab-icon">🎯</span>
+        <span class="apply-subtab-badge" id="badge-backtest">0%</span>
+        <span class="apply-subtab-label">Backtest</span>
+      </button>
+      <button class="apply-subtab" data-pane="practice" onclick="switchApplyPane('practice',this)">
+        <span class="apply-subtab-icon">🔍</span>
+        <span class="apply-subtab-badge" id="badge-practice">0</span>
+        <span class="apply-subtab-label">Practice</span>
+      </button>
+      <button class="apply-subtab" data-pane="mastery" onclick="switchApplyPane('mastery',this)">
+        <span class="apply-subtab-icon">⭐</span>
+        <span class="apply-subtab-badge" id="badge-mastery">—</span>
+        <span class="apply-subtab-label">Mastery</span>
+      </button>
+      <button class="apply-subtab" data-pane="ai" onclick="switchApplyPane('ai',this)">
+        <span class="apply-subtab-icon">🤖</span>
+        <span class="apply-subtab-badge" id="badge-ai">AI</span>
+        <span class="apply-subtab-label">Consultant</span>
+      </button>
+    </div>
+
+    <!-- PANE: JOURNAL -->
+    <div class="apply-pane active" id="pane-journal">
+    <div style="display:grid;grid-template-columns:1fr;gap:14px;" class="apply-tools-grid">
 
       <!-- TRADE IDEA JOURNAL -->
       <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:1.1rem;">
@@ -312,7 +385,12 @@
         </div>
         <div id="ideaList" style="display:flex;flex-direction:column;gap:6px;max-height:280px;overflow-y:auto;"></div>
       </div>
+    </div>
+    </div><!-- /pane-journal -->
 
+    <!-- PANE: BACKTEST -->
+    <div class="apply-pane" id="pane-backtest">
+    <div style="display:grid;grid-template-columns:1fr;gap:14px;" class="apply-tools-grid">
       <!-- BACKTEST LOG -->
       <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:1.1rem;">
         <div style="font-family:var(--mono);font-size:8px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem;display:flex;justify-content:space-between;align-items:center;">
@@ -340,9 +418,12 @@
         <div id="btList" style="display:flex;flex-direction:column;gap:6px;max-height:220px;overflow-y:auto;"></div>
       </div>
     </div>
+    </div><!-- /pane-backtest -->
 
+    <!-- PANE: PRACTICE -->
+    <div class="apply-pane" id="pane-practice">
     <!-- PRACTICE LOG — Pattern Recognition / Data Collection / Delivery of Price -->
-    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:1.1rem;margin-top:14px;">
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:1.1rem;">
       <div style="font-family:var(--mono);font-size:8px;letter-spacing:.15em;text-transform:uppercase;color:var(--cyan);margin-bottom:.25rem;">Practice Log</div>
       <div style="font-size:11px;color:var(--muted);font-weight:600;margin-bottom:.85rem;line-height:1.5;">Three distinct backtesting skills — not "finding entries." Pattern Recognition, Data Collection, Delivery of Price.</div>
       <div class="btn-group" style="margin-bottom:.85rem;">
@@ -396,17 +477,23 @@
         <div id="deliveryAccuracy" style="font-family:var(--mono);font-size:9px;color:var(--muted);"></div>
       </div>
     </div>
+    </div><!-- /pane-practice -->
 
+    <!-- PANE: MASTERY -->
+    <div class="apply-pane" id="pane-mastery">
     <!-- CONCEPT MASTERY — spaced-repetition self-grading -->
-    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:1.1rem;margin-top:14px;">
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:1.1rem;">
       <div style="font-family:var(--mono);font-size:8px;letter-spacing:.15em;text-transform:uppercase;color:var(--amber);margin-bottom:.25rem;">Concept Mastery</div>
       <div style="font-size:11px;color:var(--muted);font-weight:600;margin-bottom:.75rem;line-height:1.5;">Grade yourself 1-10 on every concept. Backtesting time should go to your lowest-graded weaknesses.</div>
       <div id="focusNext" style="margin-bottom:.85rem;"></div>
       <div id="masteryGrid" style="display:flex;flex-direction:column;gap:10px;max-height:340px;overflow-y:auto;"></div>
     </div>
+    </div><!-- /pane-mastery -->
 
+    <!-- PANE: AI -->
+    <div class="apply-pane" id="pane-ai">
     <!-- AI CONSULTANT -->
-    <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:14px;padding:1.1rem;margin-top:14px;">
+    <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:14px;padding:1.1rem;">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.75rem;flex-wrap:wrap;gap:.5rem;">
         <div>
           <div style="font-family:var(--mono);font-size:8px;letter-spacing:.15em;text-transform:uppercase;color:var(--cyan);">AI Consultant — SMC Interpreter</div>
@@ -426,6 +513,7 @@
       <div id="aiResponse" style="display:none;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:.85rem 1rem;font-size:13px;font-weight:600;line-height:1.75;color:var(--text);white-space:pre-wrap;"></div>
       <div style="font-size:10px;color:var(--muted);font-weight:600;margin-top:.5rem;line-height:1.5;">⚠ This is an educational interpretation tool based on SMC framework principles. It is not financial advice. Never trade based solely on AI output.</div>
     </div>
+    </div><!-- /pane-ai -->
 
   </div>
 </section>
@@ -498,6 +586,17 @@ function openModule(id) {
   document.getElementById('moduleRules').innerHTML = concept.rules
     .map(r => `<li>${r}</li>`).join('');
 
+  // Mastery badge (links Learn to Apply's grading)
+  const grades = JSON.parse(localStorage.getItem('smc_mastery')||'{}');
+  const badge = document.getElementById('moduleMastery');
+  if (grades[id] !== undefined) {
+    badge.style.display = 'inline-flex';
+    badge.textContent = '★ ' + grades[id] + '/10';
+    badge.style.color = grades[id] >= 7 ? 'var(--green)' : grades[id] >= 4 ? 'var(--amber)' : 'var(--red)';
+  } else {
+    badge.style.display = 'none';
+  }
+
   // Visual
   renderModuleVisual(concept);
 
@@ -510,17 +609,43 @@ function openModule(id) {
         return rc ? `<span class="related-chip" onclick="openModule('${r}')">${rc.icon} ${rc.name}</span>` : '';
       }).join('') : '';
 
-  // Open panel and scroll
-  const panel = document.getElementById('modulePanel');
-  panel.classList.add('open');
-  setTimeout(() => panel.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
+  // Open overlay — instant, no scroll needed regardless of scroll position
+  document.getElementById('moduleBackdrop').classList.add('open');
+  document.getElementById('modulePanel').classList.add('open');
+  document.getElementById('modulePanel').querySelector('.module-panel-scroll').scrollTop = 0;
+  document.body.style.overflow = 'hidden';
 }
 
 function closeModule() {
+  document.getElementById('moduleBackdrop').classList.remove('open');
   document.getElementById('modulePanel').classList.remove('open');
   document.querySelectorAll('.concept-card').forEach(c => c.classList.remove('active-card'));
+  document.body.style.overflow = '';
   activeConceptId = null;
 }
+
+// Swipe-down-to-close on mobile bottom sheet
+(function initModuleSwipe(){
+  const panel = document.getElementById('modulePanel');
+  const handle = document.getElementById('moduleDragHandle');
+  if (!panel || !handle) return;
+  let startY = 0, currentY = 0, dragging = false;
+  handle.addEventListener('touchstart', e => { dragging = true; startY = e.touches[0].clientY; panel.style.transition = 'none'; }, {passive:true});
+  handle.addEventListener('touchmove', e => {
+    if (!dragging) return;
+    currentY = e.touches[0].clientY;
+    const delta = Math.max(0, currentY - startY);
+    panel.style.transform = `translateY(${delta}px)`;
+  }, {passive:true});
+  handle.addEventListener('touchend', () => {
+    dragging = false;
+    panel.style.transition = '';
+    const delta = currentY - startY;
+    panel.style.transform = '';
+    if (delta > 100) closeModule();
+    startY = 0; currentY = 0;
+  });
+})();
 
 // ════════════════════════════════════════════════
 // MODULE VISUALS — SVG / Session Clock
@@ -760,10 +885,12 @@ function setField(btn, field, value, colorClass) {
   evalEngine();
 }
 
+let currentStep = 1;
+
 function evalEngine() {
   const { gates, total, tier, direction, weekly_warning, dol_warning } = SMCEngine.evaluateGates();
 
-  // Score circle
+  // Score circle (desktop side panel)
   const circle = document.getElementById('scoreCircle');
   circle.style.borderColor = tier.color;
   document.getElementById('scoreNum').style.color = tier.color;
@@ -772,9 +899,16 @@ function evalEngine() {
   document.getElementById('resultTier').style.color = tier.color;
   document.getElementById('resultAction').textContent = tier.action;
 
-  // Direction badge
+  // Persistent score strip (always visible above the wizard, no scrolling needed)
+  document.getElementById('wssNum').textContent = total;
+  document.getElementById('wssNum').style.color = tier.color;
+  document.getElementById('wssLabel').textContent = tier.label + ' — ' + tier.action;
+
+  // Direction badge (both locations)
   const dirClass = direction.includes('LONG') ? 'dir-long' : direction.includes('SHORT') ? 'dir-short' : 'dir-neutral';
-  document.getElementById('directionWrap').innerHTML = `<span class="result-direction ${dirClass}">${direction}</span>`;
+  const dirHtml = `<span class="result-direction ${dirClass}">${direction}</span>`;
+  document.getElementById('directionWrap').innerHTML = dirHtml;
+  document.getElementById('wssDirection').innerHTML = direction !== 'NEUTRAL' ? dirHtml : '';
 
   // Sequential gates breakdown — locked gates render dimmed with a lock icon
   document.getElementById('gatesBreakdown').innerHTML = Object.values(gates).map(g => `
@@ -792,6 +926,37 @@ function evalEngine() {
   // DOL warning
   document.getElementById('dolWarning').innerHTML = dol_warning
     ? `<div class="warning-box" style="border-color:var(--violet);color:var(--violet);">🧲 ${dol_warning}</div>` : '';
+
+  // Update wizard pill lock states + Next button availability
+  const pill2 = document.getElementById('wizPill-2');
+  const pill3 = document.getElementById('wizPill-3');
+  const next1 = document.getElementById('wizNext-1');
+  const next2 = document.getElementById('wizNext-2');
+
+  pill2.disabled = !gates.direction.pass;
+  pill2.classList.toggle('locked', !gates.direction.pass);
+  pill2.classList.toggle('done', gates.direction.pass);
+  pill2.querySelector('.wizard-pill-icon').textContent = gates.direction.pass ? '✓' : '🔒';
+  next1.disabled = !gates.direction.pass;
+
+  pill3.disabled = !gates.stage.pass;
+  pill3.classList.toggle('locked', !gates.stage.pass);
+  pill3.classList.toggle('done', gates.stage.pass);
+  pill3.querySelector('.wizard-pill-icon').textContent = gates.stage.pass ? '✓' : '🔒';
+  next2.disabled = !gates.stage.pass;
+
+  // Auto-advance: if user is on a step whose gate just failed (e.g. after reset-like edits), don't force-navigate — only unlock, never lock user out of where they are
+}
+
+function goToStep(n) {
+  const pill = document.getElementById('wizPill-'+n);
+  if (pill.disabled) return;
+  currentStep = n;
+  [1,2,3].forEach(i => {
+    document.getElementById('wizStep-'+i).classList.toggle('active', i === n);
+    document.getElementById('wizPill-'+i).classList.toggle('current', i === n);
+  });
+  document.querySelector('.engine-form').scrollTo({top:0, behavior:'smooth'});
 }
 
 function resetEngine() {
@@ -807,6 +972,18 @@ function resetEngine() {
   document.getElementById('gatesBreakdown').innerHTML = '';
   document.getElementById('weeklyWarning').innerHTML = '';
   document.getElementById('dolWarning').innerHTML = '';
+  document.getElementById('wssNum').textContent = '—';
+  document.getElementById('wssNum').style.color = 'var(--muted)';
+  document.getElementById('wssLabel').textContent = 'Fill in Direction to begin';
+  document.getElementById('wssDirection').innerHTML = '';
+  goToStep(1);
+  ['wizPill-2','wizPill-3'].forEach(id => {
+    const p = document.getElementById(id);
+    p.disabled = true; p.classList.add('locked'); p.classList.remove('done');
+    p.querySelector('.wizard-pill-icon').textContent = '🔒';
+  });
+  document.getElementById('wizNext-1').disabled = true;
+  document.getElementById('wizNext-2').disabled = true;
 }
 
 // ════════════════════════════════════════════════
@@ -934,6 +1111,7 @@ function renderIdeas(){
       <div style="font-family:var(--mono);font-size:7px;color:var(--muted);margin-top:3px;">${new Date(i.ts).toLocaleString()}</div>
     </div>`;
   }).join('');
+  updateApplyBadges();
 }
 
 function updateIdeaStatus(id,status){
@@ -1005,6 +1183,7 @@ function renderBacktest(){
       <button onclick="deleteBacktest('${b.id}')" style="background:none;border:none;color:var(--muted);font-size:10px;cursor:pointer;flex-shrink:0;">✕</button>
     </div>`;
   }).join('');
+  updateApplyBadges();
 }
 
 function deleteBacktest(id){
@@ -1052,6 +1231,7 @@ function renderPatternTally(){
     const col=n>=20?'var(--green)':n>=10?'var(--amber)':'var(--muted)';
     return `<div style="background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:5px 9px;font-family:var(--mono);font-size:8px;color:${col};">${labels[k]}: ${n}/20</div>`;
   }).join('');
+  updateApplyBadges();
 }
 
 // ── Data Collection ──
@@ -1079,6 +1259,7 @@ function renderDataTally(){
       <div style="font-family:var(--mono);font-size:8px;color:var(--cyan);margin-top:2px;">${pct}% observed (${yes}/${total})</div>
     </div>`;
   }).join('');
+  updateApplyBadges();
 }
 
 // ── Delivery of Price ──
@@ -1118,6 +1299,7 @@ function renderDeliveryPending(){
         <button onclick="gradeDelivery('${e.id}',false)" style="background:none;border:1px solid var(--red);color:var(--red);font-size:8px;padding:2px 7px;border-radius:5px;cursor:pointer;font-family:var(--mono);">✗ Wrong</button>
       </div>
     </div>`).join('');
+  updateApplyBadges();
 }
 function renderDeliveryAccuracy(){
   const log=loadStore('smc_delivery_log').filter(e=>e.outcome!==null);
@@ -1158,6 +1340,7 @@ function setMastery(id,val){
   if(val===''){ delete grades[id]; } else { grades[id]=Math.max(0,Math.min(10,parseInt(val)||0)); }
   localStorage.setItem('smc_mastery',JSON.stringify(grades));
   renderFocusNext(grades);
+  updateApplyBadges();
 }
 function renderFocusNext(grades){
   const el=document.getElementById('focusNext');
@@ -1262,6 +1445,37 @@ function saveStore(key,val){ localStorage.setItem(key,JSON.stringify(val)); }
 function escHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 // Init apply section data
+function switchApplyPane(id, btn){
+  document.querySelectorAll('.apply-pane').forEach(p=>p.classList.remove('active'));
+  document.getElementById('pane-'+id).classList.add('active');
+  document.querySelectorAll('.apply-subtab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  window.scrollTo({top: document.getElementById('section-apply').offsetTop, behavior:'smooth'});
+}
+
+function updateApplyBadges(){
+  // Journal — count of active ideas
+  const ideas = loadStore('smc_ideas');
+  document.getElementById('badge-journal').textContent = ideas.length;
+
+  // Backtest — win rate
+  const backtests = loadStore('smc_backtest');
+  const graded = backtests.filter(b=>b.result==='win'||b.result==='loss');
+  const wins = backtests.filter(b=>b.result==='win').length;
+  document.getElementById('badge-backtest').textContent = graded.length ? Math.round(wins/graded.length*100)+'%' : '—';
+
+  // Practice — total logged examples across all three modes
+  const pCount = loadStore('smc_pattern_log').length;
+  const dCount = loadStore('smc_data_log').length;
+  const dpCount = loadStore('smc_delivery_log').length;
+  document.getElementById('badge-practice').textContent = pCount+dCount+dpCount;
+
+  // Mastery — average grade
+  const grades = JSON.parse(localStorage.getItem('smc_mastery')||'{}');
+  const vals = Object.values(grades);
+  document.getElementById('badge-mastery').textContent = vals.length ? (vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(1) : '—';
+}
+
 function initApply(){
   populateInstrumentSelects();
   renderIdeas();
@@ -1271,6 +1485,7 @@ function initApply(){
   renderDeliveryPending();
   renderDeliveryAccuracy();
   buildMasteryGrid();
+  updateApplyBadges();
   const key=localStorage.getItem('smc_ai_key');
   if(key) document.getElementById('aiKeyInput').value=key;
 }
