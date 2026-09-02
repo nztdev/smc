@@ -40,34 +40,42 @@
   <div class="section-inner">
     <div class="section-eyebrow">Smart Money Concepts — Interactive Mentorship</div>
     <h1 class="section-title">The Framework</h1>
-    <p class="section-sub">Master the price delivery algorithm. Every concept builds on the last. Start with Market Structure — everything else flows from understanding how price moves and why.</p>
+    <p class="section-sub">Every concept builds on the last. Tap a node to walk through it — start near the center with Market Structure and Draw on Liquidity, everything else radiates outward from there.</p>
 
-    <div class="concept-grid" id="conceptGrid"></div>
+    <div class="node-map-toolbar">
+      <div class="node-map-legend">
+        <div class="nml-item"><div class="nml-dot" style="background:var(--border2);"></div>Not graded</div>
+        <div class="nml-item"><div class="nml-dot" style="background:var(--red);"></div>0-3</div>
+        <div class="nml-item"><div class="nml-dot" style="background:var(--amber);"></div>4-6</div>
+        <div class="nml-item"><div class="nml-dot" style="background:var(--green);"></div>7-10</div>
+      </div>
+      <button class="node-map-reset" onclick="resetNodeMapView()">↺ Center view</button>
+    </div>
+
+    <div class="node-map-wrap" id="nodeMapWrap">
+      <div class="node-map-canvas" id="nodeMapCanvas">
+        <svg id="nodeMapSvg" viewBox="0 0 1100 1100" xmlns="http://www.w3.org/2000/svg"></svg>
+      </div>
+    </div>
   </div>
 
-  <!-- MODULE DETAIL — OVERLAY (bottom sheet on mobile, side drawer on desktop) -->
-  <div class="module-backdrop" id="moduleBackdrop" onclick="closeModule()"></div>
-  <div class="module-panel" id="modulePanel">
-    <div class="module-drag-handle" id="moduleDragHandle"></div>
-    <div class="module-panel-scroll">
-      <div class="module-header">
-        <div>
-          <div class="module-title" id="moduleTitle">—</div>
-          <div style="display:flex;gap:6px;align-items:center;margin-top:.3rem;">
-            <span class="pill" id="moduleCat">—</span>
-            <span class="pill" id="moduleMastery" style="display:none;"></span>
-          </div>
-        </div>
-        <button class="module-close" onclick="closeModule()">✕ Close</button>
+  <!-- FULL-SCREEN SWIPEABLE NODE FLOW -->
+  <div class="node-flow-overlay" id="nodeFlowOverlay">
+    <div class="nf-topbar">
+      <button class="nf-close" onclick="closeNodeFlow()">✕</button>
+      <div class="nf-dots" id="nfDots"></div>
+      <div class="nf-title-mini" id="nfTitleMini"></div>
+    </div>
+    <div class="nf-track-wrap">
+      <div class="nf-track" id="nfTrack"></div>
+      <div class="nf-bottomnav">
+        <button class="nf-nav-btn prev" id="nfPrevBtn" onclick="prevCard()">← Back</button>
+        <button class="nf-nav-btn next" id="nfNextBtn" onclick="nextCard()">Continue →</button>
       </div>
-      <div class="module-desc" id="moduleDesc"></div>
-      <div class="rules-title">Core Rules</div>
-      <ul class="rules-list" id="moduleRules"></ul>
-      <div class="visual-area" id="moduleVisual"></div>
-      <div class="related-row" id="moduleRelated"></div>
     </div>
   </div>
 </section>
+
 
 <!-- ════════════════════════════════════════════════
      SECTION 2: THINK — Decision Engine
@@ -532,7 +540,7 @@ let currentSymbol = 'FX:EURUSD';
 let currentTF = '240';
 
 window.onload = function() {
-  buildConceptGrid();
+  buildNodeMap();
   buildInstrumentGrid();
 };
 
@@ -552,100 +560,283 @@ function switchSection(id) {
 }
 
 // ════════════════════════════════════════════════
-// LEARN — CONCEPT GRID
+// LEARN — NODE MAP (skill-tree navigation)
 // ════════════════════════════════════════════════
-function buildConceptGrid() {
-  const grid = document.getElementById('conceptGrid');
-  grid.innerHTML = SMC_DATA.concepts.map(c => `
-    <div class="concept-card ${c.status === 'placeholder' ? 'placeholder' : ''}" 
-         id="card-${c.id}"
-         onclick="${c.status === 'built' ? `openModule('${c.id}')` : ''}">
-      <span class="concept-icon">${c.icon}</span>
-      <div class="concept-name">${c.name}</div>
-      <div class="concept-cat">${c.category}</div>
-      <div class="concept-desc">${c.description}</div>
-      <span class="concept-badge ${c.status === 'built' ? 'badge-built' : 'badge-placeholder'}">
-        ${c.status === 'built' ? 'INTERACTIVE' : 'COMING'}
-      </span>
-    </div>`).join('');
+const NODE_TIERS = ['Foundation','Entry Arrays','Setups','Price Delivery','Time','Protocol','Macro','Risk'];
+
+function getMasteryGrades(){ return JSON.parse(localStorage.getItem('smc_mastery')||'{}'); }
+function getMasteryState(id){
+  const g = getMasteryGrades()[id];
+  if (g === undefined) return 'ungraded';
+  if (g >= 7) return 'high';
+  if (g >= 4) return 'mid';
+  return 'low';
 }
 
-function openModule(id) {
-  const concept = SMC_DATA.concepts.find(c => c.id === id);
-  if (!concept || concept.status !== 'built') return;
+function computeNodeLayout(){
+  const cx=550, cy=550;
+  const ringRadius = [110, 260, 400, 500];
+  const tierRing = {'Foundation':0,'Entry Arrays':1,'Setups':1,'Price Delivery':1,'Time':2,'Protocol':2,'Macro':3,'Risk':3};
+  const byRing = {0:[],1:[],2:[],3:[]};
+  SMC_DATA.concepts.forEach(c=>{ byRing[tierRing[c.category] ?? 2].push(c); });
+  const positions = {};
+  Object.keys(byRing).forEach(ringIdx=>{
+    const nodes = byRing[ringIdx];
+    const r = ringRadius[ringIdx];
+    const offset = (ringIdx%2===0) ? 0 : Math.PI/nodes.length;
+    nodes.forEach((c,i)=>{
+      const angle = (2*Math.PI*i/nodes.length) + offset - Math.PI/2;
+      positions[c.id] = { x: cx + r*Math.cos(angle), y: cy + r*Math.sin(angle) };
+    });
+  });
+  return positions;
+}
 
-  // Highlight active card
-  document.querySelectorAll('.concept-card').forEach(c => c.classList.remove('active-card'));
-  document.getElementById('card-'+id)?.classList.add('active-card');
-  activeConceptId = id;
+function buildNodeMap(){
+  const positions = computeNodeLayout();
+  const svg = document.getElementById('nodeMapSvg');
+  const seen = new Set();
+  let edgesHtml = '';
+  SMC_DATA.concepts.forEach(c=>{
+    (c.related||[]).forEach(r=>{
+      const key = [c.id,r].sort().join('|');
+      if (seen.has(key) || !positions[r]) return;
+      seen.add(key);
+      const a = positions[c.id], b = positions[r];
+      edgesHtml += `<line class="node-edge" x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}"></line>`;
+    });
+  });
 
-  // Populate panel
-  document.getElementById('moduleTitle').textContent = concept.icon + ' ' + concept.name;
-  document.getElementById('moduleCat').textContent = concept.category;
-  document.getElementById('moduleDesc').textContent = concept.description;
-  document.getElementById('moduleRules').innerHTML = concept.rules
-    .map(r => `<li>${r}</li>`).join('');
+  let nodesHtml = '';
+  SMC_DATA.concepts.forEach(c=>{
+    const p = positions[c.id];
+    const state = getMasteryState(c.id);
+    const grades = getMasteryGrades();
+    nodesHtml += `
+      <g class="node-g state-graded-${state}" id="node-${c.id}" transform="translate(${p.x},${p.y})" onclick="openNodeFlow('${c.id}')">
+        <circle class="node-circle node-circle-bg" r="30"></circle>
+        <text class="node-icon-text" y="-2">${c.icon}</text>
+        <text class="node-label-text" y="46">${c.name.length>16?c.name.slice(0,15)+'…':c.name}</text>
+        ${state!=='ungraded' ? `<circle class="node-badge-circle" cx="22" cy="-22" r="12"></circle><text class="node-badge-text" x="22" y="-22">${grades[c.id]}</text>` : ''}
+      </g>`;
+  });
 
-  // Mastery badge (links Learn to Apply's grading)
-  const grades = JSON.parse(localStorage.getItem('smc_mastery')||'{}');
-  const badge = document.getElementById('moduleMastery');
-  if (grades[id] !== undefined) {
-    badge.style.display = 'inline-flex';
-    badge.textContent = '★ ' + grades[id] + '/10';
-    badge.style.color = grades[id] >= 7 ? 'var(--green)' : grades[id] >= 4 ? 'var(--amber)' : 'var(--red)';
-  } else {
-    badge.style.display = 'none';
+  svg.innerHTML = edgesHtml + nodesHtml;
+}
+
+function refreshNodeMapStates(){
+  SMC_DATA.concepts.forEach(c=>{
+    const g = document.getElementById('node-'+c.id);
+    if(!g) return;
+    const state = getMasteryState(c.id);
+    g.className.baseVal = 'node-g state-graded-'+state;
+    const grades = getMasteryGrades();
+    const existingBadge = g.querySelector('.node-badge-circle');
+    if(existingBadge) existingBadge.parentElement.querySelectorAll('.node-badge-circle,.node-badge-text').forEach(el=>el.remove());
+    if(state!=='ungraded'){
+      const ns='http://www.w3.org/2000/svg';
+      const bc=document.createElementNS(ns,'circle'); bc.setAttribute('class','node-badge-circle'); bc.setAttribute('cx','22'); bc.setAttribute('cy','-22'); bc.setAttribute('r','12');
+      const bt=document.createElementNS(ns,'text'); bt.setAttribute('class','node-badge-text'); bt.setAttribute('x','22'); bt.setAttribute('y','-22'); bt.textContent=grades[c.id];
+      g.appendChild(bc); g.appendChild(bt);
+    }
+  });
+}
+
+function resetNodeMapView(){
+  const wrap = document.getElementById('nodeMapWrap');
+  const canvas = document.getElementById('nodeMapCanvas');
+  wrap.scrollTo({ left:(canvas.scrollWidth-wrap.clientWidth)/2, top:(canvas.scrollHeight-wrap.clientHeight)/2, behavior:'smooth' });
+}
+
+// ════════════════════════════════════════════════
+// LEARN — FULL-SCREEN SWIPEABLE NODE FLOW
+// ════════════════════════════════════════════════
+let flowConcept = null;
+let flowCards = [];
+let flowIndex = 0;
+
+function chunkRules(rules, size){
+  const chunks = [];
+  for (let i=0; i<rules.length; i+=size) chunks.push(rules.slice(i,i+size));
+  return chunks;
+}
+
+function buildFlowCards(concept){
+  const cards = [];
+
+  // 1. Hook card
+  cards.push({ type:'hook', render: () => {
+    const grades = getMasteryGrades();
+    const g = grades[concept.id];
+    return `
+      <div class="nf-hook-icon">${concept.icon}</div>
+      <div class="nf-hook-cat">${concept.category}</div>
+      <div class="nf-hook-title">${concept.name}</div>
+      <div class="nf-hook-desc">${concept.description}</div>
+      ${g!==undefined ? `<div class="nf-hook-mastery">★ Currently graded ${g}/10</div>` : ''}
+    `; }});
+
+  // 2. Rule cards — chunked 3 at a time
+  const chunks = chunkRules(concept.rules, 3);
+  chunks.forEach((chunk,i)=>{
+    cards.push({ type:'rules', render: () => `
+      <div class="nf-card-label">Core Rules ${chunks.length>1?`(${i+1}/${chunks.length})`:''}</div>
+      ${chunk.map(r=>`<div class="nf-rule-item">${r}</div>`).join('')}
+    `});
+  });
+
+  // 3. Visual card (if one exists)
+  if (concept.visual_type) {
+    cards.push({ type:'visual', render: () => `
+      <div class="nf-card-label">Visual</div>
+      <div class="nf-visual-wrap">${
+        concept.visual_type==='session_clock' ? buildSessionClock() :
+        concept.visual_type==='annotated_chart' ? buildAnnotatedChart(concept.id) :
+        concept.visual_type==='timeframe_cascade' ? buildTFCascade() :
+        `<div style="color:var(--muted);font-family:var(--mono);font-size:10px;padding:2rem;">No diagram for this concept yet</div>`
+      }</div>
+    `});
   }
 
-  // Visual
-  renderModuleVisual(concept);
+  // 4. Live chart card
+  cards.push({ type:'live', render: () => `
+    <div class="nf-card-label">See it live</div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;">
+      <div class="nf-live-icon">📈</div>
+      <div style="font-size:14px;font-weight:600;color:var(--text);max-width:380px;line-height:1.7;">Open a live chart to look for ${concept.name} in real market structure.</div>
+      <button class="nf-live-btn" onclick="openLiveChart()">Open Live Chart →</button>
+    </div>
+  `});
 
-  // Related concepts
-  const related = concept.related || [];
-  document.getElementById('moduleRelated').innerHTML = related.length
-    ? `<div style="font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-right:8px;">Related:</div>` +
-      related.map(r => {
-        const rc = SMC_DATA.concepts.find(c => c.id === r);
-        return rc ? `<span class="related-chip" onclick="openModule('${r}')">${rc.icon} ${rc.name}</span>` : '';
-      }).join('') : '';
+  // 5. Related concepts card (if any)
+  if (concept.related && concept.related.length) {
+    cards.push({ type:'related', render: () => `
+      <div class="nf-card-label">Related concepts</div>
+      <div style="font-size:12px;color:var(--muted);font-weight:600;margin-bottom:1rem;">Jump straight into a connected concept without leaving this flow.</div>
+      <div>${concept.related.map(r=>{
+        const rc = SMC_DATA.concepts.find(c=>c.id===r);
+        return rc ? `<span class="nf-related-chip" onclick="jumpToRelatedInFlow('${r}')">${rc.icon} ${rc.name}</span>` : '';
+      }).join('')}</div>
+    `});
+  }
 
-  // Open overlay — instant, no scroll needed regardless of scroll position
-  document.getElementById('moduleBackdrop').classList.add('open');
-  document.getElementById('modulePanel').classList.add('open');
-  document.getElementById('modulePanel').querySelector('.module-panel-scroll').scrollTop = 0;
+  // 6. Grade card
+  cards.push({ type:'grade', render: () => {
+    const grades = getMasteryGrades();
+    const current = grades[concept.id];
+    return `
+      <div class="nf-card-label">Grade yourself</div>
+      <div style="font-size:13px;color:var(--muted);font-weight:600;margin-bottom:1rem;line-height:1.7;">How well do you understand this concept right now, 0–10? Backtesting time should go to your lowest-graded weaknesses.</div>
+      <div class="nf-grade-row">
+        ${Array.from({length:11},(_,i)=>i).map(n=>`<button class="nf-grade-btn ${current===n?'selected':''}" onclick="gradeInFlow('${concept.id}',${n},this)">${n}</button>`).join('')}
+      </div>
+    `; }});
+
+  return cards;
+}
+
+function openNodeFlow(id){
+  const concept = SMC_DATA.concepts.find(c => c.id === id);
+  if (!concept || concept.status !== 'built') return;
+  flowConcept = concept;
+  flowCards = buildFlowCards(concept);
+  flowIndex = 0;
+  document.getElementById('nfTitleMini').textContent = concept.icon + ' ' + concept.name;
+  renderFlowTrack();
+  document.getElementById('nodeFlowOverlay').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
 
-function closeModule() {
-  document.getElementById('moduleBackdrop').classList.remove('open');
-  document.getElementById('modulePanel').classList.remove('open');
-  document.querySelectorAll('.concept-card').forEach(c => c.classList.remove('active-card'));
-  document.body.style.overflow = '';
-  activeConceptId = null;
+function renderFlowTrack(){
+  const track = document.getElementById('nfTrack');
+  track.innerHTML = flowCards.map(c => `<div class="nf-card">${c.render()}</div>`).join('');
+  document.getElementById('nfDots').innerHTML = flowCards.map((c,i) =>
+    `<div class="nf-dot ${i<flowIndex?'done':''} ${i===flowIndex?'current':''}" onclick="goToCard(${i})"></div>`).join('');
+  updateFlowPosition();
 }
 
-// Swipe-down-to-close on mobile bottom sheet
-(function initModuleSwipe(){
-  const panel = document.getElementById('modulePanel');
-  const handle = document.getElementById('moduleDragHandle');
-  if (!panel || !handle) return;
-  let startY = 0, currentY = 0, dragging = false;
-  handle.addEventListener('touchstart', e => { dragging = true; startY = e.touches[0].clientY; panel.style.transition = 'none'; }, {passive:true});
-  handle.addEventListener('touchmove', e => {
+function updateFlowPosition(){
+  document.getElementById('nfTrack').style.transform = `translateX(-${flowIndex*100}%)`;
+  document.querySelectorAll('.nf-dot').forEach((d,i)=>{
+    d.classList.toggle('current', i===flowIndex);
+    d.classList.toggle('done', i<flowIndex);
+  });
+  document.getElementById('nfPrevBtn').disabled = flowIndex===0;
+  const isLast = flowIndex===flowCards.length-1;
+  document.getElementById('nfNextBtn').textContent = isLast ? 'Done ✓' : 'Continue →';
+}
+
+function goToCard(i){ flowIndex = Math.max(0, Math.min(flowCards.length-1, i)); updateFlowPosition(); }
+function nextCard(){
+  if (flowIndex >= flowCards.length-1) { closeNodeFlow(); return; }
+  flowIndex++; updateFlowPosition();
+}
+function prevCard(){ if (flowIndex>0){ flowIndex--; updateFlowPosition(); } }
+
+function closeNodeFlow(){
+  document.getElementById('nodeFlowOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+  refreshNodeMapStates();
+  flowConcept = null; flowCards = []; flowIndex = 0;
+}
+
+function jumpToRelatedInFlow(id){
+  const concept = SMC_DATA.concepts.find(c => c.id === id);
+  if (!concept || concept.status !== 'built') return;
+  flowConcept = concept;
+  flowCards = buildFlowCards(concept);
+  flowIndex = 0;
+  document.getElementById('nfTitleMini').textContent = concept.icon + ' ' + concept.name;
+  renderFlowTrack();
+}
+
+function gradeInFlow(id, val, btn){
+  const grades = getMasteryGrades();
+  grades[id] = val;
+  localStorage.setItem('smc_mastery', JSON.stringify(grades));
+  btn.parentElement.querySelectorAll('.nf-grade-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  if (typeof updateApplyBadges === 'function') updateApplyBadges();
+  if (typeof renderFocusNext === 'function') renderFocusNext(grades);
+  if (typeof buildMasteryGrid === 'function') buildMasteryGrid();
+}
+
+function openLiveChart(){
+  closeNodeFlow();
+  switchSection('apply');
+  setTimeout(()=>{
+    document.getElementById('instrumentGrid')?.scrollIntoView({behavior:'smooth', block:'start'});
+  }, 150);
+}
+
+// Swipe navigation for the flow track
+(function initFlowSwipe(){
+  const trackWrap = document.getElementById('nf-track-wrap') || document.querySelector('.nf-track-wrap');
+  if (!trackWrap) return;
+  let startX = 0, deltaX = 0, dragging = false;
+  trackWrap.addEventListener('touchstart', e => { dragging = true; startX = e.touches[0].clientX; document.getElementById('nfTrack').style.transition='none'; }, {passive:true});
+  trackWrap.addEventListener('touchmove', e => {
     if (!dragging) return;
-    currentY = e.touches[0].clientY;
-    const delta = Math.max(0, currentY - startY);
-    panel.style.transform = `translateY(${delta}px)`;
+    deltaX = e.touches[0].clientX - startX;
+    document.getElementById('nfTrack').style.transform = `translateX(calc(-${flowIndex*100}% + ${deltaX}px))`;
   }, {passive:true});
-  handle.addEventListener('touchend', () => {
+  trackWrap.addEventListener('touchend', () => {
     dragging = false;
-    panel.style.transition = '';
-    const delta = currentY - startY;
-    panel.style.transform = '';
-    if (delta > 100) closeModule();
-    startY = 0; currentY = 0;
+    document.getElementById('nfTrack').style.transition = '';
+    if (deltaX < -60) nextCard();
+    else if (deltaX > 60) prevCard();
+    else updateFlowPosition();
+    deltaX = 0;
   });
 })();
+
+// Keyboard navigation for the flow (desktop)
+document.addEventListener('keydown', e => {
+  if (!document.getElementById('nodeFlowOverlay')?.classList.contains('open')) return;
+  if (e.key === 'ArrowRight') nextCard();
+  if (e.key === 'ArrowLeft') prevCard();
+  if (e.key === 'Escape') closeNodeFlow();
+});
 
 // ════════════════════════════════════════════════
 // MODULE VISUALS — SVG / Session Clock
@@ -1327,7 +1518,7 @@ function buildMasteryGrid(){
         ${byCategory[cat].map(c=>{
           const g=grades[c.id]??'';
           return `<div style="display:flex;align-items:center;gap:8px;background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:5px 9px;">
-            <span style="flex:1;font-size:11px;font-weight:600;color:var(--text);cursor:pointer;" onclick="switchSection('learn');openModule('${c.id}')">${c.icon} ${c.name}</span>
+            <span style="flex:1;font-size:11px;font-weight:600;color:var(--text);cursor:pointer;" onclick="openNodeFlow('${c.id}')">${c.icon} ${c.name}</span>
             <input type="number" min="0" max="10" value="${g}" placeholder="—" oninput="setMastery('${c.id}',this.value)" style="width:36px;text-align:center;background:var(--bg2);border:1px solid var(--border2);color:var(--amber);font-family:var(--mono);font-size:10px;padding:3px;border-radius:5px;outline:none;">
           </div>`;
         }).join('')}
@@ -1354,7 +1545,7 @@ function renderFocusNext(grades){
   }
   el.innerHTML=`<div style="font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--amber);margin-bottom:5px;">🎯 Focus next</div>
     <div style="display:flex;gap:6px;flex-wrap:wrap;">
-      ${weakest.map(c=>`<div style="background:rgba(255,170,0,0.08);border:1px solid rgba(255,170,0,0.3);border-radius:20px;padding:4px 11px;font-family:var(--mono);font-size:9px;color:var(--amber);cursor:pointer;" onclick="switchSection('learn');openModule('${c.id}')">${c.icon} ${c.name} (${c.grade}/10)</div>`).join('')}
+      ${weakest.map(c=>`<div style="background:rgba(255,170,0,0.08);border:1px solid rgba(255,170,0,0.3);border-radius:20px;padding:4px 11px;font-family:var(--mono);font-size:9px;color:var(--amber);cursor:pointer;" onclick="openNodeFlow('${c.id}')">${c.icon} ${c.name} (${c.grade}/10)</div>`).join('')}
     </div>`;
 }
 
