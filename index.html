@@ -40,22 +40,46 @@
   <div class="section-inner">
     <div class="section-eyebrow">Smart Money Concepts — Interactive Mentorship</div>
     <h1 class="section-title">The Framework</h1>
-    <p class="section-sub">Every concept builds on the last. Tap a node to walk through it — start near the center with Market Structure and Draw on Liquidity, everything else radiates outward from there.</p>
+    <p class="section-sub">Every concept builds on the last. Start near the center with Market Structure and Draw on Liquidity — everything else radiates outward from there.</p>
 
-    <div class="node-map-toolbar">
-      <div class="node-map-legend">
-        <div class="nml-item"><div class="nml-dot" style="background:var(--border2);"></div>Not graded</div>
-        <div class="nml-item"><div class="nml-dot" style="background:var(--red);"></div>0-3</div>
-        <div class="nml-item"><div class="nml-dot" style="background:var(--amber);"></div>4-6</div>
-        <div class="nml-item"><div class="nml-dot" style="background:var(--green);"></div>7-10</div>
-      </div>
-      <button class="node-map-reset" onclick="resetNodeMapView()">↺ Center view</button>
+    <div class="learn-view-switcher">
+      <button class="lvs-btn active" data-view="map" onclick="switchLearnView('map',this)">🗺 Map</button>
+      <button class="lvs-btn" data-view="linear" onclick="switchLearnView('linear',this)">📖 Linear</button>
+      <button class="lvs-btn" data-view="grouped" onclick="switchLearnView('grouped',this)">🗂 Grouped</button>
     </div>
 
-    <div class="node-map-wrap" id="nodeMapWrap">
-      <div class="node-map-canvas" id="nodeMapCanvas">
-        <svg id="nodeMapSvg" viewBox="0 0 1100 1100" xmlns="http://www.w3.org/2000/svg"></svg>
+    <!-- VIEW: MAP -->
+    <div class="learn-view active" id="view-map">
+      <div class="node-map-toolbar">
+        <div class="node-map-legend">
+          <div class="nml-item"><div class="nml-dot" style="background:var(--border2);"></div>Not graded</div>
+          <div class="nml-item"><div class="nml-dot" style="background:var(--red);"></div>0-3</div>
+          <div class="nml-item"><div class="nml-dot" style="background:var(--amber);"></div>4-6</div>
+          <div class="nml-item"><div class="nml-dot" style="background:var(--green);"></div>7-10</div>
+        </div>
+        <button class="node-map-reset" onclick="resetNodeMapView()">↺ Center view</button>
       </div>
+
+      <div class="node-map-wrap" id="nodeMapWrap">
+        <div class="node-map-canvas" id="nodeMapCanvas">
+          <svg id="nodeMapSvg" viewBox="0 0 1100 1100" xmlns="http://www.w3.org/2000/svg"></svg>
+        </div>
+        <div class="node-map-zoom-controls">
+          <button class="nmz-btn" onclick="zoomNodeMap(1.25)">+</button>
+          <button class="nmz-btn" onclick="zoomNodeMap(0.8)">−</button>
+          <button class="nmz-btn nmz-reset" onclick="resetNodeMapView()">⟲</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW: LINEAR -->
+    <div class="learn-view" id="view-linear">
+      <div class="linear-list" id="linearList"></div>
+    </div>
+
+    <!-- VIEW: GROUPED -->
+    <div class="learn-view" id="view-grouped">
+      <div id="groupedContainer"></div>
     </div>
   </div>
 
@@ -574,23 +598,25 @@ function getMasteryState(id){
 }
 
 function computeNodeLayout(){
-  const cx=550, cy=550;
-  const ringRadius = [110, 260, 400, 500];
-  const tierRing = {'Foundation':0,'Entry Arrays':1,'Setups':1,'Price Delivery':1,'Time':2,'Protocol':2,'Macro':3,'Risk':3};
-  const byRing = {0:[],1:[],2:[],3:[]};
-  SMC_DATA.concepts.forEach(c=>{ byRing[tierRing[c.category] ?? 2].push(c); });
   const positions = {};
-  Object.keys(byRing).forEach(ringIdx=>{
-    const nodes = byRing[ringIdx];
-    const r = ringRadius[ringIdx];
+  Object.keys(RING_BY_NODE_INDEX).forEach(ringIdx=>{
+    const nodes = RING_BY_NODE_INDEX[ringIdx];
+    const r = RING_RADIUS[ringIdx];
     const offset = (ringIdx%2===0) ? 0 : Math.PI/nodes.length;
     nodes.forEach((c,i)=>{
       const angle = (2*Math.PI*i/nodes.length) + offset - Math.PI/2;
-      positions[c.id] = { x: cx + r*Math.cos(angle), y: cy + r*Math.sin(angle) };
+      positions[c.id] = { x: MAP_CX + r*Math.cos(angle), y: MAP_CY + r*Math.sin(angle) };
     });
   });
   return positions;
 }
+
+// Shared ring constants — used by layout AND fog-of-war
+const MAP_CX = 550, MAP_CY = 550;
+const RING_RADIUS = [110, 260, 400, 500];
+const TIER_RING = {'Foundation':0,'Entry Arrays':1,'Setups':1,'Price Delivery':1,'Time':2,'Protocol':2,'Macro':3,'Risk':3};
+const RING_BY_NODE_INDEX = {0:[],1:[],2:[],3:[]};
+SMC_DATA.concepts.forEach(c=>{ RING_BY_NODE_INDEX[TIER_RING[c.category] ?? 2].push(c); });
 
 function buildNodeMap(){
   const positions = computeNodeLayout();
@@ -621,7 +647,66 @@ function buildNodeMap(){
       </g>`;
   });
 
-  svg.innerHTML = edgesHtml + nodesHtml;
+  svg.innerHTML = `<defs>
+      <radialGradient id="fogGrad" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#060810" stop-opacity="0"/>
+        <stop offset="70%" stop-color="#060810" stop-opacity="0"/>
+        <stop offset="100%" stop-color="#060810" stop-opacity="0.94"/>
+      </radialGradient>
+    </defs>` + edgesHtml + nodesHtml + `<g id="fogLayer"></g>`;
+
+  renderFogOfWar();
+  initNodeMapZoomPan();
+  resetNodeMapView();
+}
+
+// ── FOG OF WAR ───────────────────────────────────
+// Ring 0 (Foundation) is always clear. Each subsequent ring's fog
+// opacity fades based on how much of the PREVIOUS ring is graded —
+// "intuitively fades" as the user progresses outward.
+function ringProgress(ringIdx){
+  const nodes = RING_BY_NODE_INDEX[ringIdx] || [];
+  if (!nodes.length) return 1;
+  const grades = getMasteryGrades();
+  const gradedCount = nodes.filter(c => grades[c.id] !== undefined).length;
+  return gradedCount / nodes.length;
+}
+
+function renderFogOfWar(){
+  const layer = document.getElementById('fogLayer');
+  if (!layer) return;
+  const ns = 'http://www.w3.org/2000/svg';
+  layer.innerHTML = '';
+
+  // Ring 0 always fully clear (no fog). Fog for ring N is driven by ring N-1 progress.
+  for (let ring=1; ring<RING_RADIUS.length; ring++){
+    const prevProgress = ringProgress(ring-1);
+    // Fog opacity: 1 (fully foggy) when prev ring untouched, fading to 0 as prev ring completes.
+    // Reveal starts early (at 20% progress) and fully clears at 90%+ for a gradual, forgiving feel.
+    const revealStart = 0.15, revealEnd = 0.9;
+    let fogOpacity = 1 - Math.max(0, Math.min(1, (prevProgress - revealStart) / (revealEnd - revealStart)));
+
+    const innerR = (RING_RADIUS[ring-1] + RING_RADIUS[ring]) / 2 - 20;
+    const outerR = RING_RADIUS[ring] + (RING_RADIUS[ring+1] ? (RING_RADIUS[ring+1]-RING_RADIUS[ring])/2 : 90);
+
+    const ringEl = document.createElementNS(ns,'circle');
+    ringEl.setAttribute('class','fog-ring');
+    ringEl.setAttribute('cx', MAP_CX); ringEl.setAttribute('cy', MAP_CY);
+    ringEl.setAttribute('r', outerR);
+    ringEl.setAttribute('fill', 'url(#fogGrad)');
+    ringEl.setAttribute('opacity', fogOpacity.toFixed(2));
+    ringEl.style.mixBlendMode = 'normal';
+    layer.appendChild(ringEl);
+
+    // Toggle interactivity/blur class on nodes in this ring based on fog level
+    const isFogged = fogOpacity > 0.35;
+    (RING_BY_NODE_INDEX[ring]||[]).forEach(c=>{
+      const g = document.getElementById('node-'+c.id);
+      if (!g) return;
+      g.classList.toggle('fogged', isFogged);
+      g.classList.toggle('fog-revealing', !isFogged);
+    });
+  }
 }
 
 function refreshNodeMapStates(){
@@ -640,12 +725,178 @@ function refreshNodeMapStates(){
       g.appendChild(bc); g.appendChild(bt);
     }
   });
+  renderFogOfWar();
+  if (document.getElementById('view-linear')?.classList.contains('active')) buildLinearView();
+  if (document.getElementById('view-grouped')?.classList.contains('active')) buildGroupedView();
+}
+
+// ── PAN + ZOOM ───────────────────────────────────
+let nmScale = 1, nmPanX = 0, nmPanY = 0;
+
+function applyNodeMapTransform(){
+  const canvas = document.getElementById('nodeMapCanvas');
+  if (canvas) canvas.style.transform = `translate(${nmPanX}px,${nmPanY}px) scale(${nmScale})`;
+}
+
+function clampPan(){
+  const wrap = document.getElementById('nodeMapWrap');
+  if (!wrap) return;
+  const w = wrap.clientWidth, h = wrap.clientHeight;
+  const canvasSize = 1100 * nmScale;
+  const minX = Math.min(0, w - canvasSize) - 60, maxX = Math.max(0, w - canvasSize) + 60;
+  const minY = Math.min(0, h - canvasSize) - 60, maxY = Math.max(0, h - canvasSize) + 60;
+  nmPanX = Math.max(minX, Math.min(nmPanX, maxX));
+  nmPanY = Math.max(minY, Math.min(nmPanY, maxY));
 }
 
 function resetNodeMapView(){
   const wrap = document.getElementById('nodeMapWrap');
-  const canvas = document.getElementById('nodeMapCanvas');
-  wrap.scrollTo({ left:(canvas.scrollWidth-wrap.clientWidth)/2, top:(canvas.scrollHeight-wrap.clientHeight)/2, behavior:'smooth' });
+  if (!wrap) return;
+  nmScale = Math.max(wrap.clientWidth, wrap.clientHeight) / 1100 * 0.62;
+  nmScale = Math.max(0.45, Math.min(nmScale, 1));
+  nmPanX = (wrap.clientWidth - 1100*nmScale) / 2;
+  nmPanY = (wrap.clientHeight - 1100*nmScale) / 2;
+  applyNodeMapTransform();
+}
+
+function zoomNodeMap(factor, centerX, centerY){
+  const wrap = document.getElementById('nodeMapWrap');
+  if (!wrap) return;
+  const cx = centerX ?? wrap.clientWidth/2, cy = centerY ?? wrap.clientHeight/2;
+  const newScale = Math.max(0.35, Math.min(nmScale*factor, 2.5));
+  // Zoom toward the given center point
+  nmPanX = cx - (cx - nmPanX) * (newScale/nmScale);
+  nmPanY = cy - (cy - nmPanY) * (newScale/nmScale);
+  nmScale = newScale;
+  clampPan();
+  applyNodeMapTransform();
+}
+
+function initNodeMapZoomPan(){
+  const wrap = document.getElementById('nodeMapWrap');
+  if (!wrap || wrap.dataset.zoomInit) return;
+  wrap.dataset.zoomInit = '1';
+
+  // Desktop: wheel zoom toward cursor
+  wrap.addEventListener('wheel', e=>{
+    e.preventDefault();
+    const rect = wrap.getBoundingClientRect();
+    const factor = e.deltaY < 0 ? 1.12 : 0.89;
+    zoomNodeMap(factor, e.clientX-rect.left, e.clientY-rect.top);
+  }, {passive:false});
+
+  // Drag to pan (mouse + single touch via pointer events)
+  let dragging = false, lastX=0, lastY=0;
+  wrap.addEventListener('pointerdown', e=>{
+    if (e.pointerType==='touch' && e.isPrimary===false) return;
+    dragging = true; lastX=e.clientX; lastY=e.clientY;
+    wrap.classList.add('dragging');
+    wrap.setPointerCapture(e.pointerId);
+  });
+  wrap.addEventListener('pointermove', e=>{
+    if (!dragging || pinching) return;
+    nmPanX += e.clientX - lastX; nmPanY += e.clientY - lastY;
+    lastX = e.clientX; lastY = e.clientY;
+    applyNodeMapTransform();
+  });
+  ['pointerup','pointercancel','pointerleave'].forEach(evt=>{
+    wrap.addEventListener(evt, ()=>{ dragging=false; wrap.classList.remove('dragging'); clampPan(); applyNodeMapTransform(); });
+  });
+
+  // Mobile: pinch to zoom
+  let pinching = false, pinchStartDist = 0, pinchStartScale = 1;
+  wrap.addEventListener('touchstart', e=>{
+    if (e.touches.length===2){
+      pinching = true; dragging = false;
+      pinchStartDist = Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
+      pinchStartScale = nmScale;
+    }
+  }, {passive:true});
+  wrap.addEventListener('touchmove', e=>{
+    if (!pinching || e.touches.length!==2) return;
+    const dist = Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
+    const rect = wrap.getBoundingClientRect();
+    const midX = (e.touches[0].clientX+e.touches[1].clientX)/2 - rect.left;
+    const midY = (e.touches[0].clientY+e.touches[1].clientY)/2 - rect.top;
+    const targetScale = Math.max(0.35, Math.min(pinchStartScale * (dist/pinchStartDist), 2.5));
+    nmPanX = midX - (midX - nmPanX) * (targetScale/nmScale);
+    nmPanY = midY - (midY - nmPanY) * (targetScale/nmScale);
+    nmScale = targetScale;
+    applyNodeMapTransform();
+  }, {passive:true});
+  wrap.addEventListener('touchend', e=>{
+    if (e.touches.length<2){ pinching=false; clampPan(); applyNodeMapTransform(); }
+  });
+
+  window.addEventListener('resize', ()=>{ if(document.getElementById('view-map')?.classList.contains('active')) resetNodeMapView(); });
+}
+
+// ── VIEW SWITCHER ────────────────────────────────
+function switchLearnView(view, btn){
+  document.querySelectorAll('.learn-view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+view).classList.add('active');
+  document.querySelectorAll('.lvs-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  if (view==='linear') buildLinearView();
+  if (view==='grouped') buildGroupedView();
+  if (view==='map') setTimeout(()=>{ if(!document.getElementById('nodeMapWrap').dataset.zoomInit) initNodeMapZoomPan(); resetNodeMapView(); }, 30);
+}
+
+// ── LINEAR VIEW — chronological learning order ───
+function buildLinearView(){
+  const list = document.getElementById('linearList');
+  const grades = getMasteryGrades();
+  let html = '', globalIdx = 1;
+  NODE_TIERS.forEach(tier=>{
+    const concepts = SMC_DATA.concepts.filter(c=>c.category===tier);
+    if (!concepts.length) return;
+    html += `<div class="linear-tier-header">${tier}</div>`;
+    concepts.forEach(c=>{
+      const state = getMasteryState(c.id);
+      const g = grades[c.id];
+      html += `
+        <div class="linear-item ${state!=='ungraded'?'li-graded-'+state:''}" onclick="openNodeFlow('${c.id}')">
+          <div class="linear-num">${String(globalIdx).padStart(2,'0')}</div>
+          <div class="linear-icon">${c.icon}</div>
+          <div class="linear-info">
+            <div class="linear-name">${c.name}</div>
+            <div class="linear-cat">${c.category}</div>
+          </div>
+          ${g!==undefined ? `<div class="linear-badge" style="color:${state==='high'?'var(--green)':state==='mid'?'var(--amber)':'var(--red)'}">★ ${g}/10</div>` : ''}
+        </div>`;
+      globalIdx++;
+    });
+  });
+  list.innerHTML = html;
+}
+
+// ── GROUPED VIEW — by category ───────────────────
+function buildGroupedView(){
+  const container = document.getElementById('groupedContainer');
+  const grades = getMasteryGrades();
+  let html = '';
+  NODE_TIERS.forEach(tier=>{
+    const concepts = SMC_DATA.concepts.filter(c=>c.category===tier);
+    if (!concepts.length) return;
+    html += `<div class="grouped-section">
+      <div class="grouped-header">${tier} <span class="grouped-count">(${concepts.length})</span></div>
+      <div class="grouped-grid">
+        ${concepts.map(c=>{
+          const state = getMasteryState(c.id);
+          const g = grades[c.id];
+          return `<div class="grouped-card ${state!=='ungraded'?'gc-graded-'+state:''}" onclick="openNodeFlow('${c.id}')">
+            <div class="gc-top">
+              <span class="gc-icon">${c.icon}</span>
+              ${g!==undefined ? `<span class="gc-badge" style="color:${state==='high'?'var(--green)':state==='mid'?'var(--amber)':'var(--red)'}">★${g}</span>` : ''}
+            </div>
+            <div class="gc-name">${c.name}</div>
+            <div class="gc-desc">${c.description.length>90?c.description.slice(0,88)+'…':c.description}</div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  });
+  container.innerHTML = html;
 }
 
 // ════════════════════════════════════════════════
@@ -799,6 +1050,7 @@ function gradeInFlow(id, val, btn){
   if (typeof updateApplyBadges === 'function') updateApplyBadges();
   if (typeof renderFocusNext === 'function') renderFocusNext(grades);
   if (typeof buildMasteryGrid === 'function') buildMasteryGrid();
+  if (typeof refreshNodeMapStates === 'function') refreshNodeMapStates();
 }
 
 function openLiveChart(){

@@ -340,3 +340,70 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .nf-nav-btn.next{background:var(--cyan);color:#07090d;}
 .nf-nav-btn.next:hover{background:#30c0b0;}
 .nf-nav-btn:disabled{opacity:.25;cursor:not-allowed;}
+
+/* ============================================================
+   LEARN — VIEW SWITCHER
+   ============================================================ */
+.learn-view-switcher{display:flex;gap:5px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:4px;margin-bottom:1rem;width:fit-content;}
+.lvs-btn{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.08em;text-transform:uppercase;padding:.5rem .9rem;border-radius:9px;border:none;background:transparent;color:var(--muted);cursor:pointer;transition:.2s;display:flex;align-items:center;gap:5px;}
+.lvs-btn:hover{color:var(--text);}
+.lvs-btn.active{background:var(--cyan);color:#07090d;font-weight:700;}
+.learn-view{display:none;}
+.learn-view.active{display:block;}
+
+/* ============================================================
+   LEARN — NODE MAP ZOOM/PAN
+   ============================================================ */
+.node-map-wrap{position:relative;overflow:hidden;touch-action:none;cursor:grab;}
+.node-map-wrap.dragging{cursor:grabbing;}
+.node-map-canvas{width:1100px;height:1100px;position:absolute;top:0;left:0;transform-origin:0 0;will-change:transform;}
+.node-map-zoom-controls{position:absolute;bottom:14px;right:14px;display:flex;flex-direction:column;gap:4px;z-index:5;}
+.nmz-btn{width:34px;height:34px;border-radius:10px;background:rgba(15,18,24,0.9);border:1px solid var(--border2);color:var(--text);font-size:15px;cursor:pointer;transition:.15s;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
+.nmz-btn:hover{border-color:var(--cyan);color:var(--cyan);}
+.nmz-btn.nmz-reset{font-size:11px;}
+
+/* ============================================================
+   LEARN — FOG OF WAR
+   ============================================================ */
+.fog-ring{pointer-events:none;transition:opacity .8s ease;}
+.node-g.fogged{pointer-events:none;}
+.node-g.fogged .node-circle-bg{filter:blur(1.5px);}
+.node-g.fogged .node-icon-text,.node-g.fogged .node-label-text{opacity:.15;}
+.node-g.fog-revealing{pointer-events:all;}
+.node-g.fog-revealing .node-icon-text,.node-g.fog-revealing .node-label-text{opacity:1;transition:opacity 1s ease;}
+
+/* ============================================================
+   LEARN — LINEAR VIEW
+   ============================================================ */
+.linear-list{display:flex;flex-direction:column;gap:8px;max-width:640px;}
+.linear-item{display:flex;align-items:center;gap:14px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:.85rem 1.1rem;cursor:pointer;transition:.2s;position:relative;}
+.linear-item:hover{border-color:var(--cyan);transform:translateX(3px);}
+.linear-item.li-graded-high{border-left:3px solid var(--green);}
+.linear-item.li-graded-mid{border-left:3px solid var(--amber);}
+.linear-item.li-graded-low{border-left:3px solid var(--red);}
+.linear-num{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);width:22px;flex-shrink:0;}
+.linear-icon{font-size:22px;flex-shrink:0;}
+.linear-info{flex:1;min-width:0;}
+.linear-name{font-family:'Black Ops One',cursive;font-size:13px;color:var(--text);}
+.linear-cat{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:2px;}
+.linear-tier-header{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--cyan);margin:1.25rem 0 .5rem;padding-left:2px;}
+.linear-tier-header:first-child{margin-top:0;}
+.linear-badge{font-family:'Space Mono',monospace;font-size:9px;font-weight:700;flex-shrink:0;}
+
+/* ============================================================
+   LEARN — GROUPED VIEW
+   ============================================================ */
+.grouped-section{margin-bottom:1.75rem;}
+.grouped-header{font-family:'Black Ops One',cursive;font-size:15px;color:var(--text);margin-bottom:.75rem;display:flex;align-items:center;gap:8px;}
+.grouped-count{font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);font-weight:400;}
+.grouped-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;}
+.grouped-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:.9rem 1rem;cursor:pointer;transition:.2s;}
+.grouped-card:hover{border-color:var(--cyan);transform:translateY(-2px);}
+.grouped-card.gc-graded-high{border-color:rgba(64,184,112,0.4);}
+.grouped-card.gc-graded-mid{border-color:rgba(255,170,0,0.4);}
+.grouped-card.gc-graded-low{border-color:rgba(224,80,80,0.4);}
+.gc-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.4rem;}
+.gc-icon{font-size:20px;}
+.gc-badge{font-family:'Space Mono',monospace;font-size:9px;font-weight:700;}
+.gc-name{font-family:'Black Ops One',cursive;font-size:12px;color:var(--text);margin-bottom:.3rem;}
+.gc-desc{font-size:10.5px;color:var(--muted);font-weight:600;line-height:1.5;}
