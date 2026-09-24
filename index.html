@@ -79,7 +79,11 @@
 
     <!-- VIEW: GROUPED -->
     <div class="learn-view" id="view-grouped">
-      <div id="groupedContainer"></div>
+      <div class="grouped-hint">Bubble size = number of concepts. Overlap = real cross-referenced relationships in the data — categories that share no links never overlap.</div>
+      <div class="grouped-svg-wrap">
+        <svg id="groupedSvg" viewBox="0 0 1000 900" xmlns="http://www.w3.org/2000/svg"></svg>
+      </div>
+      <div class="grouped-legend" id="groupedLegend"></div>
     </div>
   </div>
 
@@ -870,33 +874,175 @@ function buildLinearView(){
   list.innerHTML = html;
 }
 
-// ── GROUPED VIEW — by category ───────────────────
-function buildGroupedView(){
-  const container = document.getElementById('groupedContainer');
-  const grades = getMasteryGrades();
-  let html = '';
-  NODE_TIERS.forEach(tier=>{
-    const concepts = SMC_DATA.concepts.filter(c=>c.category===tier);
-    if (!concepts.length) return;
-    html += `<div class="grouped-section">
-      <div class="grouped-header">${tier} <span class="grouped-count">(${concepts.length})</span></div>
-      <div class="grouped-grid">
-        ${concepts.map(c=>{
-          const state = getMasteryState(c.id);
-          const g = grades[c.id];
-          return `<div class="grouped-card ${state!=='ungraded'?'gc-graded-'+state:''}" onclick="openNodeFlow('${c.id}')">
-            <div class="gc-top">
-              <span class="gc-icon">${c.icon}</span>
-              ${g!==undefined ? `<span class="gc-badge" style="color:${state==='high'?'var(--green)':state==='mid'?'var(--amber)':'var(--red)'}">★${g}</span>` : ''}
-            </div>
-            <div class="gc-name">${c.name}</div>
-            <div class="gc-desc">${c.description.length>90?c.description.slice(0,88)+'…':c.description}</div>
-          </div>`;
-        }).join('')}
-      </div>
-    </div>`;
+// ── GROUPED VIEW — relationship bubble diagram ───
+const CATEGORY_COLORS = {};
+NODE_TIERS.forEach((t,i)=>{ CATEGORY_COLORS[t] = `hsl(${Math.round(360*i/NODE_TIERS.length)},65%,58%)`; });
+
+let categoryLinkMatrix = null;
+function computeCategoryLinks(){
+  if (categoryLinkMatrix) return categoryLinkMatrix;
+  const matrix = {};
+  NODE_TIERS.forEach(a=>{ matrix[a]={}; NODE_TIERS.forEach(b=>{ matrix[a][b]=0; }); });
+  const seen = new Set();
+  SMC_DATA.concepts.forEach(c=>{
+    (c.related||[]).forEach(rid=>{
+      const rc = SMC_DATA.concepts.find(x=>x.id===rid);
+      if (!rc || rc.category===c.category) return;
+      const key = [c.id,rid].sort().join('|');
+      if (seen.has(key)) return;
+      seen.add(key);
+      matrix[c.category][rc.category]++;
+      matrix[rc.category][c.category]++;
+    });
   });
-  container.innerHTML = html;
+  categoryLinkMatrix = matrix;
+  return matrix;
+}
+
+let bubbleLayoutCache = null;
+function computeBubbleLayout(){
+  if (bubbleLayoutCache) return bubbleLayoutCache;
+  const linkMatrix = computeCategoryLinks();
+  const conceptCount = {};
+  NODE_TIERS.forEach(t=>{ conceptCount[t] = SMC_DATA.concepts.filter(c=>c.category===t).length; });
+
+  const CX=500, CY=430;
+  const nodes = NODE_TIERS.map((t,i)=>{
+    const r = 42 + 15*Math.sqrt(conceptCount[t]||1);
+    const angle = (2*Math.PI*i/NODE_TIERS.length) - Math.PI/2;
+    return { cat:t, r, x: CX+260*Math.cos(angle), y: CY+260*Math.sin(angle) };
+  });
+
+  const maxLink = Math.max(1, ...NODE_TIERS.flatMap(a=>NODE_TIERS.map(b=>linkMatrix[a][b]||0)));
+
+  for (let iter=0; iter<350; iter++){
+    for (let i=0;i<nodes.length;i++){
+      for (let j=i+1;j<nodes.length;j++){
+        const a=nodes[i], b=nodes[j];
+        const dx=b.x-a.x, dy=b.y-a.y;
+        const dist=Math.hypot(dx,dy)||0.01;
+        const link = linkMatrix[a.cat][b.cat]||0;
+        const strength = link/maxLink;
+        // Unlinked pairs get a firm minimum gap — never allowed to overlap.
+        const targetDist = strength>0 ? (a.r+b.r)*(1-strength*0.55) : (a.r+b.r)*1.12;
+        const diff = (dist - targetDist) / dist;
+        const springF = 0.05;
+        const fx = dx*diff*springF, fy = dy*diff*springF;
+        a.x += fx; a.y += fy;
+        b.x -= fx; b.y -= fy;
+      }
+    }
+    nodes.forEach(n=>{ n.x += (CX-n.x)*0.002; n.y += (CY-n.y)*0.002; });
+  }
+
+  // Deterministic safety pass — guarantees zero-link pairs never visually overlap,
+  // regardless of how the spring simulation converged.
+  for (let pass=0; pass<40; pass++){
+    let anyFixed = false;
+    for (let i=0;i<nodes.length;i++){
+      for (let j=i+1;j<nodes.length;j++){
+        const a=nodes[i], b=nodes[j];
+        if ((linkMatrix[a.cat][b.cat]||0) > 0) continue;
+        const dx=b.x-a.x, dy=b.y-a.y;
+        const dist=Math.hypot(dx,dy)||0.01;
+        const minDist = (a.r+b.r) * 1.05;
+        if (dist < minDist){
+          anyFixed = true;
+          const push=(minDist-dist)/2, ux=dx/dist, uy=dy/dist;
+          a.x -= ux*push; a.y -= uy*push;
+          b.x += ux*push; b.y += uy*push;
+        }
+      }
+    }
+    if (!anyFixed) break;
+  }
+
+  bubbleLayoutCache = nodes;
+  return nodes;
+}
+
+function packDotsInBubble(bubble, concepts){
+  const golden = 2.399963;
+  return concepts.map((c,i)=>{
+    const idx = i+0.5, frac = idx/concepts.length;
+    const rr = bubble.r * 0.6 * Math.sqrt(frac);
+    const angle = idx * golden;
+    return { concept:c, x: bubble.x + rr*Math.cos(angle), y: bubble.y + rr*Math.sin(angle) + bubble.r*0.08 };
+  });
+}
+
+let groupedHighlightCat = null;
+
+function buildGroupedView(){
+  const linkMatrix = computeCategoryLinks();
+  const bubbles = computeBubbleLayout();
+  const grades = getMasteryGrades();
+  const svg = document.getElementById('groupedSvg');
+
+  let html = '';
+
+  // Faint dashed connector lines between linked bubble centers (subtle, reinforces the overlap)
+  const seen = new Set();
+  bubbles.forEach(a=>{
+    bubbles.forEach(b=>{
+      if (a===b) return;
+      const key=[a.cat,b.cat].sort().join('|');
+      if (seen.has(key)) return;
+      const link = linkMatrix[a.cat][b.cat]||0;
+      if (link===0) return;
+      seen.add(key);
+    });
+  });
+
+  // Bubbles (draw larger ones first so smaller sit visually on top)
+  const sorted = [...bubbles].sort((x,y)=>y.r-x.r);
+  sorted.forEach(b=>{
+    const color = CATEGORY_COLORS[b.cat];
+    const concepts = SMC_DATA.concepts.filter(c=>c.category===b.cat);
+    const dots = packDotsInBubble(b, concepts);
+
+    html += `<g class="bubble-g" id="bubble-${b.cat.replace(/\s+/g,'_')}" onclick="toggleBubbleHighlight('${b.cat}')">
+      <circle class="bubble-circle" cx="${b.x}" cy="${b.y}" r="${b.r}" fill="${color}" fill-opacity="0.1" stroke="${color}" stroke-opacity="0.55" stroke-width="1.5"></circle>
+      <text class="bubble-label" x="${b.x}" y="${b.y - b.r - 10}" font-size="13" fill="${color}">${b.cat}</text>
+      <text class="bubble-count" x="${b.x}" y="${b.y - b.r + 4}" font-size="9">${concepts.length} concept${concepts.length>1?'s':''}</text>
+      ${dots.map(d=>{
+        const state = getMasteryState(d.concept.id);
+        const borderColor = state==='high'?'var(--green)':state==='mid'?'var(--amber)':state==='low'?'var(--red)':'rgba(255,255,255,0.25)';
+        return `<circle class="concept-dot" cx="${d.x}" cy="${d.y}" r="9" fill="var(--bg2)" stroke="${borderColor}" stroke-width="1.6" onclick="event.stopPropagation();openNodeFlow('${d.concept.id}')"><title>${d.concept.name}</title></circle>
+        <text class="concept-dot-icon" x="${d.x}" y="${d.y+1}" onclick="event.stopPropagation();openNodeFlow('${d.concept.id}')">${d.concept.icon}</text>`;
+      }).join('')}
+    </g>`;
+  });
+
+  svg.innerHTML = html;
+  applyBubbleHighlight();
+  buildGroupedLegend();
+}
+
+function toggleBubbleHighlight(cat){
+  groupedHighlightCat = (groupedHighlightCat===cat) ? null : cat;
+  applyBubbleHighlight();
+  document.querySelectorAll('.gl-chip').forEach(c=>c.classList.toggle('active', c.dataset.cat===groupedHighlightCat));
+}
+
+function applyBubbleHighlight(){
+  const linkMatrix = computeCategoryLinks();
+  document.querySelectorAll('.bubble-g').forEach(g=>{
+    const cat = g.id.replace('bubble-','').replace(/_/g,' ');
+    g.classList.remove('dimmed','highlighted');
+    if (!groupedHighlightCat) return;
+    if (cat===groupedHighlightCat){ g.classList.add('highlighted'); return; }
+    const linked = (linkMatrix[groupedHighlightCat] && linkMatrix[groupedHighlightCat][cat] > 0);
+    if (!linked) g.classList.add('dimmed');
+  });
+}
+
+function buildGroupedLegend(){
+  const legend = document.getElementById('groupedLegend');
+  legend.innerHTML = NODE_TIERS.map(t=>
+    `<div class="gl-chip" data-cat="${t}" onclick="toggleBubbleHighlight('${t}')" style="color:${CATEGORY_COLORS[t]}">
+      <span class="gl-dot" style="background:${CATEGORY_COLORS[t]}"></span>${t}
+    </div>`).join('');
 }
 
 // ════════════════════════════════════════════════
