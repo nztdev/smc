@@ -79,9 +79,17 @@
 
     <!-- VIEW: GROUPED -->
     <div class="learn-view" id="view-grouped">
-      <div class="grouped-hint">Bubble size = number of concepts. Overlap = real cross-referenced relationships in the data — categories that share no links never overlap.</div>
-      <div class="grouped-svg-wrap">
-        <svg id="groupedSvg" viewBox="0 0 1000 900" xmlns="http://www.w3.org/2000/svg"></svg>
+      <div class="grouped-hint">Bubble size = number of concepts. Overlap = real cross-referenced relationships in the data — categories that share no links never overlap. Pinch/scroll to zoom, drag to pan, tap a bubble to see its concepts.</div>
+      <div class="node-map-wrap" id="groupedWrap">
+        <div class="node-map-canvas grouped-canvas" id="groupedCanvas">
+          <svg id="groupedSvg" viewBox="0 0 1000 900" xmlns="http://www.w3.org/2000/svg"></svg>
+        </div>
+        <div class="node-map-zoom-controls">
+          <button class="nmz-btn" onclick="zoomGroupedMap(1.25)">+</button>
+          <button class="nmz-btn" onclick="zoomGroupedMap(0.8)">−</button>
+          <button class="nmz-btn nmz-reset" onclick="resetGroupedView()">⟲</button>
+        </div>
+        <div class="grouped-concept-panel" id="groupedConceptPanel"></div>
       </div>
       <div class="grouped-legend" id="groupedLegend"></div>
     </div>
@@ -660,7 +668,7 @@ function buildNodeMap(){
     </defs>` + edgesHtml + nodesHtml + `<g id="fogLayer"></g>`;
 
   renderFogOfWar();
-  initNodeMapZoomPan();
+  initZoomPan('map');
   resetNodeMapView();
 }
 
@@ -735,62 +743,57 @@ function refreshNodeMapStates(){
 }
 
 // ── PAN + ZOOM ───────────────────────────────────
-let nmScale = 1, nmPanX = 0, nmPanY = 0;
+// ── PAN + ZOOM (generic, shared by Map and Grouped views) ──
+const zoomState = {
+  map:     { scale:1, panX:0, panY:0, wrapId:'nodeMapWrap', canvasId:'nodeMapCanvas', canvasSize:1100 },
+  grouped: { scale:1, panX:0, panY:0, wrapId:'groupedWrap', canvasId:'groupedCanvas', canvasSize:1000 },
+};
 
-function applyNodeMapTransform(){
-  const canvas = document.getElementById('nodeMapCanvas');
-  if (canvas) canvas.style.transform = `translate(${nmPanX}px,${nmPanY}px) scale(${nmScale})`;
+function applyZoomTransform(key){
+  const st = zoomState[key];
+  const canvas = document.getElementById(st.canvasId);
+  if (canvas) canvas.style.transform = `translate(${st.panX}px,${st.panY}px) scale(${st.scale})`;
 }
 
-function clampPan(){
-  const wrap = document.getElementById('nodeMapWrap');
+function clampZoomPan(key){
+  const st = zoomState[key];
+  const wrap = document.getElementById(st.wrapId);
   if (!wrap) return;
   const w = wrap.clientWidth, h = wrap.clientHeight;
-  const canvasSize = 1100 * nmScale;
+  const canvasSize = st.canvasSize * st.scale;
   const minX = Math.min(0, w - canvasSize) - 60, maxX = Math.max(0, w - canvasSize) + 60;
   const minY = Math.min(0, h - canvasSize) - 60, maxY = Math.max(0, h - canvasSize) + 60;
-  nmPanX = Math.max(minX, Math.min(nmPanX, maxX));
-  nmPanY = Math.max(minY, Math.min(nmPanY, maxY));
+  st.panX = Math.max(minX, Math.min(st.panX, maxX));
+  st.panY = Math.max(minY, Math.min(st.panY, maxY));
 }
 
-function resetNodeMapView(){
-  const wrap = document.getElementById('nodeMapWrap');
-  if (!wrap) return;
-  nmScale = Math.max(wrap.clientWidth, wrap.clientHeight) / 1100 * 0.62;
-  nmScale = Math.max(0.45, Math.min(nmScale, 1));
-  nmPanX = (wrap.clientWidth - 1100*nmScale) / 2;
-  nmPanY = (wrap.clientHeight - 1100*nmScale) / 2;
-  applyNodeMapTransform();
-}
-
-function zoomNodeMap(factor, centerX, centerY){
-  const wrap = document.getElementById('nodeMapWrap');
+function zoomAtPoint(key, factor, centerX, centerY){
+  const st = zoomState[key];
+  const wrap = document.getElementById(st.wrapId);
   if (!wrap) return;
   const cx = centerX ?? wrap.clientWidth/2, cy = centerY ?? wrap.clientHeight/2;
-  const newScale = Math.max(0.35, Math.min(nmScale*factor, 2.5));
-  // Zoom toward the given center point
-  nmPanX = cx - (cx - nmPanX) * (newScale/nmScale);
-  nmPanY = cy - (cy - nmPanY) * (newScale/nmScale);
-  nmScale = newScale;
-  clampPan();
-  applyNodeMapTransform();
+  const newScale = Math.max(0.3, Math.min(st.scale*factor, 3));
+  st.panX = cx - (cx - st.panX) * (newScale/st.scale);
+  st.panY = cy - (cy - st.panY) * (newScale/st.scale);
+  st.scale = newScale;
+  clampZoomPan(key);
+  applyZoomTransform(key);
 }
 
-function initNodeMapZoomPan(){
-  const wrap = document.getElementById('nodeMapWrap');
+function initZoomPan(key){
+  const st = zoomState[key];
+  const wrap = document.getElementById(st.wrapId);
   if (!wrap || wrap.dataset.zoomInit) return;
   wrap.dataset.zoomInit = '1';
 
-  // Desktop: wheel zoom toward cursor
   wrap.addEventListener('wheel', e=>{
     e.preventDefault();
     const rect = wrap.getBoundingClientRect();
     const factor = e.deltaY < 0 ? 1.12 : 0.89;
-    zoomNodeMap(factor, e.clientX-rect.left, e.clientY-rect.top);
+    zoomAtPoint(key, factor, e.clientX-rect.left, e.clientY-rect.top);
   }, {passive:false});
 
-  // Drag to pan (mouse + single touch via pointer events)
-  let dragging = false, lastX=0, lastY=0;
+  let dragging = false, lastX=0, lastY=0, pinching = false;
   wrap.addEventListener('pointerdown', e=>{
     if (e.pointerType==='touch' && e.isPrimary===false) return;
     dragging = true; lastX=e.clientX; lastY=e.clientY;
@@ -799,41 +802,84 @@ function initNodeMapZoomPan(){
   });
   wrap.addEventListener('pointermove', e=>{
     if (!dragging || pinching) return;
-    nmPanX += e.clientX - lastX; nmPanY += e.clientY - lastY;
+    const st2 = zoomState[key];
+    st2.panX += e.clientX - lastX; st2.panY += e.clientY - lastY;
     lastX = e.clientX; lastY = e.clientY;
-    applyNodeMapTransform();
+    applyZoomTransform(key);
   });
   ['pointerup','pointercancel','pointerleave'].forEach(evt=>{
-    wrap.addEventListener(evt, ()=>{ dragging=false; wrap.classList.remove('dragging'); clampPan(); applyNodeMapTransform(); });
+    wrap.addEventListener(evt, ()=>{ dragging=false; wrap.classList.remove('dragging'); clampZoomPan(key); applyZoomTransform(key); });
   });
 
-  // Mobile: pinch to zoom
-  let pinching = false, pinchStartDist = 0, pinchStartScale = 1;
+  let pinchStartDist = 0, pinchStartScale = 1;
   wrap.addEventListener('touchstart', e=>{
     if (e.touches.length===2){
       pinching = true; dragging = false;
       pinchStartDist = Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
-      pinchStartScale = nmScale;
+      pinchStartScale = zoomState[key].scale;
     }
   }, {passive:true});
   wrap.addEventListener('touchmove', e=>{
     if (!pinching || e.touches.length!==2) return;
+    const st2 = zoomState[key];
     const dist = Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
     const rect = wrap.getBoundingClientRect();
     const midX = (e.touches[0].clientX+e.touches[1].clientX)/2 - rect.left;
     const midY = (e.touches[0].clientY+e.touches[1].clientY)/2 - rect.top;
-    const targetScale = Math.max(0.35, Math.min(pinchStartScale * (dist/pinchStartDist), 2.5));
-    nmPanX = midX - (midX - nmPanX) * (targetScale/nmScale);
-    nmPanY = midY - (midY - nmPanY) * (targetScale/nmScale);
-    nmScale = targetScale;
-    applyNodeMapTransform();
+    const targetScale = Math.max(0.3, Math.min(pinchStartScale * (dist/pinchStartDist), 3));
+    st2.panX = midX - (midX - st2.panX) * (targetScale/st2.scale);
+    st2.panY = midY - (midY - st2.panY) * (targetScale/st2.scale);
+    st2.scale = targetScale;
+    applyZoomTransform(key);
   }, {passive:true});
   wrap.addEventListener('touchend', e=>{
-    if (e.touches.length<2){ pinching=false; clampPan(); applyNodeMapTransform(); }
+    if (e.touches.length<2){ pinching=false; clampZoomPan(key); applyZoomTransform(key); }
   });
-
-  window.addEventListener('resize', ()=>{ if(document.getElementById('view-map')?.classList.contains('active')) resetNodeMapView(); });
 }
+
+// ── MAP — preserves exact original reset behavior ──
+function resetNodeMapView(){
+  const st = zoomState.map;
+  const wrap = document.getElementById(st.wrapId);
+  if (!wrap) return;
+  st.scale = Math.max(wrap.clientWidth, wrap.clientHeight) / 1100 * 0.62;
+  st.scale = Math.max(0.45, Math.min(st.scale, 1));
+  st.panX = (wrap.clientWidth - 1100*st.scale) / 2;
+  st.panY = (wrap.clientHeight - 1100*st.scale) / 2;
+  applyZoomTransform('map');
+}
+function zoomNodeMap(factor){ zoomAtPoint('map', factor); }
+
+// ── GROUPED — fits to the actual bubble bounding box, not the full nominal canvas ──
+function computeBubbleBounds(){
+  const bubbles = computeBubbleLayout();
+  let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
+  bubbles.forEach(b=>{
+    minX=Math.min(minX,b.x-b.r); maxX=Math.max(maxX,b.x+b.r);
+    minY=Math.min(minY,b.y-b.r); maxY=Math.max(maxY,b.y+b.r);
+  });
+  return {minX,minY,maxX,maxY};
+}
+function resetGroupedView(){
+  const st = zoomState.grouped;
+  const wrap = document.getElementById(st.wrapId);
+  if (!wrap) return;
+  const bounds = computeBubbleBounds();
+  const w = wrap.clientWidth, h = wrap.clientHeight;
+  const bw = Math.max(1, bounds.maxX-bounds.minX), bh = Math.max(1, bounds.maxY-bounds.minY);
+  const fitScale = Math.min(w/bw, h/bh) * 0.86; // small breathing margin
+  st.scale = Math.max(0.4, Math.min(fitScale, 2.2));
+  const bcx = (bounds.minX+bounds.maxX)/2, bcy = (bounds.minY+bounds.maxY)/2;
+  st.panX = w/2 - bcx*st.scale;
+  st.panY = h/2 - bcy*st.scale;
+  applyZoomTransform('grouped');
+}
+function zoomGroupedMap(factor){ zoomAtPoint('grouped', factor); }
+
+window.addEventListener('resize', ()=>{
+  if (document.getElementById('view-map')?.classList.contains('active')) resetNodeMapView();
+  if (document.getElementById('view-grouped')?.classList.contains('active')) resetGroupedView();
+});
 
 // ── VIEW SWITCHER ────────────────────────────────
 function switchLearnView(view, btn){
@@ -842,8 +888,12 @@ function switchLearnView(view, btn){
   document.querySelectorAll('.lvs-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   if (view==='linear') buildLinearView();
-  if (view==='grouped') buildGroupedView();
-  if (view==='map') setTimeout(()=>{ if(!document.getElementById('nodeMapWrap').dataset.zoomInit) initNodeMapZoomPan(); resetNodeMapView(); }, 30);
+  if (view==='grouped') {
+    buildGroupedView();
+    // Wait a tick so the wrap has real dimensions now that it's visible
+    setTimeout(()=>{ initZoomPan('grouped'); resetGroupedView(); }, 30);
+  }
+  if (view==='map') setTimeout(()=>{ initZoomPan('map'); resetNodeMapView(); }, 30);
 }
 
 // ── LINEAR VIEW — chronological learning order ───
@@ -910,7 +960,7 @@ function computeBubbleLayout(){
   const nodes = NODE_TIERS.map((t,i)=>{
     const r = 42 + 15*Math.sqrt(conceptCount[t]||1);
     const angle = (2*Math.PI*i/NODE_TIERS.length) - Math.PI/2;
-    return { cat:t, r, x: CX+260*Math.cos(angle), y: CY+260*Math.sin(angle) };
+    return { cat:t, r, x: CX+300*Math.cos(angle), y: CY+300*Math.sin(angle) };
   });
 
   const maxLink = Math.max(1, ...NODE_TIERS.flatMap(a=>NODE_TIERS.map(b=>linkMatrix[a][b]||0)));
@@ -923,8 +973,7 @@ function computeBubbleLayout(){
         const dist=Math.hypot(dx,dy)||0.01;
         const link = linkMatrix[a.cat][b.cat]||0;
         const strength = link/maxLink;
-        // Unlinked pairs get a firm minimum gap — never allowed to overlap.
-        const targetDist = strength>0 ? (a.r+b.r)*(1-strength*0.55) : (a.r+b.r)*1.12;
+        const targetDist = strength>0 ? (a.r+b.r)*(1-strength*0.4) : (a.r+b.r)*1.12;
         const diff = (dist - targetDist) / dist;
         const springF = 0.05;
         const fx = dx*diff*springF, fy = dy*diff*springF;
@@ -935,17 +984,22 @@ function computeBubbleLayout(){
     nodes.forEach(n=>{ n.x += (CX-n.x)*0.002; n.y += (CY-n.y)*0.002; });
   }
 
-  // Deterministic safety pass — guarantees zero-link pairs never visually overlap,
-  // regardless of how the spring simulation converged.
-  for (let pass=0; pass<40; pass++){
+  // Two-sided correction pass: unlinked pairs get a hard minimum gap (never
+  // overlap), AND linked pairs get a hard MAXIMUM overlap ceiling (42%) —
+  // multi-body spring dynamics alone can't guarantee either on their own,
+  // since other simultaneous constraints can compress a pair further than
+  // its own pairwise target suggests.
+  const MAX_OVERLAP = 0.42;
+  for (let pass=0; pass<60; pass++){
     let anyFixed = false;
     for (let i=0;i<nodes.length;i++){
       for (let j=i+1;j<nodes.length;j++){
         const a=nodes[i], b=nodes[j];
-        if ((linkMatrix[a.cat][b.cat]||0) > 0) continue;
+        const link = linkMatrix[a.cat][b.cat]||0;
         const dx=b.x-a.x, dy=b.y-a.y;
         const dist=Math.hypot(dx,dy)||0.01;
-        const minDist = (a.r+b.r) * 1.05;
+        const sumR = a.r+b.r;
+        const minDist = link>0 ? sumR*(1-MAX_OVERLAP) : sumR*1.05;
         if (dist < minDist){
           anyFixed = true;
           const push=(minDist-dist)/2, ux=dx/dist, uy=dy/dist;
@@ -961,13 +1015,31 @@ function computeBubbleLayout(){
   return nodes;
 }
 
-function packDotsInBubble(bubble, concepts){
-  const golden = 2.399963;
+// Direction pointing AWAY from a bubble's strongest overlapping neighbors —
+// used to bias dot packing toward each bubble's own exclusive territory,
+// keeping dots out of the crowded overlap zones where possible.
+function bubbleAwayAngle(bubble, allBubbles, linkMatrix){
+  let vx=0, vy=0, totalW=0;
+  allBubbles.forEach(o=>{
+    if (o===bubble) return;
+    const link = linkMatrix[bubble.cat][o.cat]||0;
+    if (link<=0) return;
+    const dx=bubble.x-o.x, dy=bubble.y-o.y;
+    const d=Math.hypot(dx,dy)||1;
+    vx += (dx/d)*link; vy += (dy/d)*link; totalW += link;
+  });
+  if (totalW===0) return null;
+  return Math.atan2(vy,vx);
+}
+
+function packDotsInBubble(bubble, concepts, awayAngle){
+  const arc = awayAngle===null ? Math.PI*2 : Math.PI*1.5;
+  const startAngle = awayAngle===null ? 0 : awayAngle - arc/2;
   return concepts.map((c,i)=>{
     const idx = i+0.5, frac = idx/concepts.length;
     const rr = bubble.r * 0.6 * Math.sqrt(frac);
-    const angle = idx * golden;
-    return { concept:c, x: bubble.x + rr*Math.cos(angle), y: bubble.y + rr*Math.sin(angle) + bubble.r*0.08 };
+    const angle = awayAngle===null ? idx*2.399963 : startAngle + frac*arc;
+    return { concept:c, x: bubble.x + rr*Math.cos(angle), y: bubble.y + rr*Math.sin(angle) + bubble.r*0.06 };
   });
 }
 
@@ -976,30 +1048,16 @@ let groupedHighlightCat = null;
 function buildGroupedView(){
   const linkMatrix = computeCategoryLinks();
   const bubbles = computeBubbleLayout();
-  const grades = getMasteryGrades();
   const svg = document.getElementById('groupedSvg');
-
-  let html = '';
-
-  // Faint dashed connector lines between linked bubble centers (subtle, reinforces the overlap)
-  const seen = new Set();
-  bubbles.forEach(a=>{
-    bubbles.forEach(b=>{
-      if (a===b) return;
-      const key=[a.cat,b.cat].sort().join('|');
-      if (seen.has(key)) return;
-      const link = linkMatrix[a.cat][b.cat]||0;
-      if (link===0) return;
-      seen.add(key);
-    });
-  });
 
   // Bubbles (draw larger ones first so smaller sit visually on top)
   const sorted = [...bubbles].sort((x,y)=>y.r-x.r);
+  let html = '';
   sorted.forEach(b=>{
     const color = CATEGORY_COLORS[b.cat];
     const concepts = SMC_DATA.concepts.filter(c=>c.category===b.cat);
-    const dots = packDotsInBubble(b, concepts);
+    const away = bubbleAwayAngle(b, bubbles, linkMatrix);
+    const dots = packDotsInBubble(b, concepts, away);
 
     html += `<g class="bubble-g" id="bubble-${b.cat.replace(/\s+/g,'_')}" onclick="toggleBubbleHighlight('${b.cat}')">
       <circle class="bubble-circle" cx="${b.x}" cy="${b.y}" r="${b.r}" fill="${color}" fill-opacity="0.1" stroke="${color}" stroke-opacity="0.55" stroke-width="1.5"></circle>
@@ -1023,6 +1081,36 @@ function toggleBubbleHighlight(cat){
   groupedHighlightCat = (groupedHighlightCat===cat) ? null : cat;
   applyBubbleHighlight();
   document.querySelectorAll('.gl-chip').forEach(c=>c.classList.toggle('active', c.dataset.cat===groupedHighlightCat));
+  if (groupedHighlightCat) showConceptListPanel(groupedHighlightCat);
+  else hideConceptListPanel();
+}
+
+function showConceptListPanel(cat){
+  const panel = document.getElementById('groupedConceptPanel');
+  const concepts = SMC_DATA.concepts.filter(c=>c.category===cat);
+  const grades = getMasteryGrades();
+  const color = CATEGORY_COLORS[cat];
+  panel.innerHTML = `
+    <div class="gcp-header">
+      <div class="gcp-title" style="color:${color}">${cat} <span class="gcp-count">(${concepts.length})</span></div>
+      <button class="gcp-close" onclick="toggleBubbleHighlight('${cat}')">✕</button>
+    </div>
+    <div class="gcp-list">
+      ${concepts.map(c=>{
+        const state = getMasteryState(c.id);
+        const g = grades[c.id];
+        const badgeColor = state==='high'?'var(--green)':state==='mid'?'var(--amber)':state==='low'?'var(--red)':'var(--muted)';
+        return `<div class="gcp-item" onclick="openNodeFlow('${c.id}')">
+          <span class="gcp-icon">${c.icon}</span>
+          <span class="gcp-name">${c.name}</span>
+          ${g!==undefined ? `<span class="gcp-badge" style="color:${badgeColor}">★${g}</span>` : ''}
+        </div>`;
+      }).join('')}
+    </div>`;
+  panel.classList.add('open');
+}
+function hideConceptListPanel(){
+  document.getElementById('groupedConceptPanel').classList.remove('open');
 }
 
 function applyBubbleHighlight(){
