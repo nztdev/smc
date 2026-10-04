@@ -270,7 +270,6 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
   -webkit-overflow-scrolling:touch;touch-action:pan-x pan-y;
 }
 .node-map-canvas{width:1100px;height:1100px;position:relative;}
-@media(min-width:1100px){.node-map-canvas{width:100%;height:100%;}}
 #nodeMapSvg{width:100%;height:100%;display:block;}
 
 .node-edge{stroke:rgba(255,255,255,0.08);stroke-width:1;fill:none;transition:stroke .3s;}
@@ -397,15 +396,14 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .bubble-circle{transition:opacity .25s,stroke-width .25s;cursor:pointer;}
 .bubble-g.dimmed .bubble-circle{opacity:.25;}
 .bubble-g.highlighted .bubble-circle{stroke-width:2.5;}
-.bubble-label{font-family:'Black Ops One',cursive;pointer-events:none;text-anchor:middle;transition:opacity .25s;}
+.bubble-label{font-family:'Black Ops One',cursive;pointer-events:none;text-anchor:middle;transition:opacity .25s;paint-order:stroke;stroke:var(--bg2);stroke-width:4px;stroke-linejoin:round;}
 .bubble-g.dimmed .bubble-label{opacity:.3;}
-.bubble-count{font-family:'Space Mono',monospace;pointer-events:none;text-anchor:middle;fill:var(--muted);transition:opacity .25s;}
-.bubble-g.dimmed .bubble-count{opacity:.3;}
 .bubble-link-line{stroke-dasharray:3,4;transition:opacity .25s;pointer-events:none;}
 .concept-dot{cursor:pointer;transition:all .15s;}
-.concept-dot:hover{r:11;}
-.concept-dot-icon{font-size:11px;text-anchor:middle;dominant-baseline:central;pointer-events:none;}
-.bubble-g.dimmed .concept-dot{opacity:.25;}
+.concept-dot-g:hover .concept-dot{stroke-width:3.4;}
+.concept-dot-icon{font-size:13px;text-anchor:middle;dominant-baseline:central;pointer-events:none;}
+.bubble-g.dimmed .concept-dot-g{opacity:.25;}
+.concept-pip{pointer-events:none;}
 .grouped-legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:.85rem;}
 .gl-chip{display:flex;align-items:center;gap:6px;font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);padding:4px 10px;border-radius:20px;border:1px solid var(--border);background:var(--bg2);cursor:pointer;transition:.15s;}
 .gl-chip:hover{border-color:var(--cyan);color:var(--text);}
@@ -414,16 +412,15 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .grouped-hint{font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);margin-bottom:.75rem;line-height:1.6;}
 
 .grouped-canvas{width:1000px;height:900px;}
-@media(min-width:1000px){.grouped-canvas{width:100%;height:100%;}}
 
-.grouped-concept-panel{position:absolute;bottom:14px;left:14px;right:60px;max-height:min(50%,280px);background:rgba(10,13,19,0.96);border:1px solid var(--border2);border-radius:14px;padding:.9rem 1rem;display:none;flex-direction:column;z-index:6;backdrop-filter:blur(6px);box-shadow:0 8px 28px rgba(0,0,0,0.5);}
+.grouped-concept-panel{margin-top:.75rem;background:var(--bg2);border:1px solid var(--border2);border-radius:14px;padding:.9rem 1rem;display:none;flex-direction:column;}
 .grouped-concept-panel.open{display:flex;}
 .gcp-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:.6rem;flex-shrink:0;}
 .gcp-title{font-family:'Black Ops One',cursive;font-size:13px;}
 .gcp-count{font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);}
 .gcp-close{background:none;border:1px solid var(--border2);color:var(--muted);width:24px;height:24px;border-radius:50%;cursor:pointer;font-size:11px;}
 .gcp-close:hover{border-color:var(--text);color:var(--text);}
-.gcp-list{overflow-y:auto;display:flex;flex-direction:column;gap:5px;}
+.gcp-list{display:flex;flex-direction:column;gap:5px;}
 .gcp-item{display:flex;align-items:center;gap:9px;padding:.5rem .65rem;border-radius:9px;background:var(--bg2);cursor:pointer;transition:.15s;}
 .gcp-item:hover{background:var(--bg3);}
 .gcp-icon{font-size:15px;flex-shrink:0;}
