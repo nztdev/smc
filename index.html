@@ -372,6 +372,11 @@
         <span class="apply-subtab-badge" id="badge-journal">0</span>
         <span class="apply-subtab-label">Journal</span>
       </button>
+      <button class="apply-subtab" data-pane="verdict" onclick="switchApplyPane('verdict',this)">
+        <span class="apply-subtab-icon">⚖️</span>
+        <span class="apply-subtab-badge" id="badge-verdict">—</span>
+        <span class="apply-subtab-label">Verdict</span>
+      </button>
       <button class="apply-subtab" data-pane="backtest" onclick="switchApplyPane('backtest',this)">
         <span class="apply-subtab-icon">🎯</span>
         <span class="apply-subtab-badge" id="badge-backtest">0%</span>
@@ -431,6 +436,46 @@
       </div>
     </div>
     </div><!-- /pane-journal -->
+
+    <!-- PANE: VERDICT (rules engine + optional Jev review + Gemini explanation) -->
+    <div class="apply-pane" id="pane-verdict">
+      <div class="vd-card">
+        <div class="vd-eyebrow">Verdict</div>
+        <div class="vd-sub">A final check on the setup you built in Think: does it meet the framework's criteria, or should you wait? It runs on the rules engine alone. An optional Jev review can tighten it, but can never loosen it. This checks criteria — it does not predict the market and is not financial advice.</div>
+        <textarea id="vdContext" class="vd-textarea" rows="3" placeholder="Optional — describe what you see (what was swept, how price displaced, where it sits in the range…). Used by Jev when connected."></textarea>
+        <div class="vd-actions">
+          <button class="vd-run" onclick="runVerdict()">Get verdict</button>
+          <span class="vd-muted" id="vdStatus"></span>
+        </div>
+        <div id="vdResult"></div>
+      </div>
+
+      <details class="vd-card vd-jev" id="vdJevBox">
+        <summary>Jev review <span class="vd-optional">optional</span> <span id="vdJevBadge" class="vd-jev-badge">off</span></summary>
+        <div id="vdJev">
+          <div class="vd-sub" style="margin-top:.75rem;">Jev (TypeSafe System One) — or a compatible open-source server such as OpenJev — returns probabilities for yes/no questions about your setup. Only for people with access or a compatible endpoint; everything else works without it. Open models can be weaker than published Jev, so check your verdict log before trusting the review. Keys are stored in this browser only. If direct browser calls are blocked, point "Custom / proxy" at a small server-side relay.</div>
+          <div class="vd-form">
+            <select id="jevProvider" onchange="onJevProviderChange()"></select>
+            <input id="jevBase" placeholder="Base URL" autocomplete="off" spellcheck="false">
+            <input id="jevModel" placeholder="Model (e.g. jev-latest)" autocomplete="off" spellcheck="false">
+            <input id="jevKey" type="password" placeholder="API key (blank for a proxy that holds it)" autocomplete="off">
+          </div>
+          <div class="vd-actions">
+            <button class="vd-btn" onclick="saveJevConfig()">Save</button>
+            <button class="vd-btn" onclick="testJev()">Test connection</button>
+            <button class="vd-btn vd-btn-ghost" onclick="clearJev()">Remove</button>
+          </div>
+          <div class="vd-muted" id="jevStatus" style="margin-top:.5rem;"></div>
+        </div>
+      </details>
+
+      <div class="vd-card">
+        <div class="vd-eyebrow" style="color:var(--amber);">Verdict log</div>
+        <div class="vd-sub">Log verdicts and record outcomes (win/loss if taken, or on paper) to see whether the criteria — and the optional Jev review — actually hold up for you.</div>
+        <div id="vdStats" class="vd-stats"></div>
+        <div id="vdHistory" class="vd-history"></div>
+      </div>
+    </div><!-- /pane-verdict -->
 
     <!-- PANE: BACKTEST -->
     <div class="apply-pane" id="pane-backtest">
@@ -566,6 +611,7 @@
 
 <script src="smc-data.js"></script>
 <script src="smc-engine.js"></script>
+<script src="smc-jev.js"></script> <!-- OPTIONAL: Verdict tab works without it -->
 <script>
 // ════════════════════════════════════════════════
 // APP INIT
@@ -2207,10 +2253,285 @@ function switchApplyPane(id, btn){
   window.scrollTo({top: document.getElementById('section-apply').offsetTop, behavior:'smooth'});
 }
 
+// ════════════════════════════════════════════════
+// VERDICT START — rules engine verdict + OPTIONAL Jev review + Gemini explanation
+// Jev (smc-jev.js) is optional: every path below works when SMCJev is undefined.
+// ════════════════════════════════════════════════
+const VD_META = {
+  meets:      { label:'MEETS CRITERIA', icon:'✓',  color:'var(--green)', badge:'✓' },
+  wait:       { label:'WAIT',           icon:'⏳', color:'var(--amber)', badge:'⏳' },
+  no:         { label:"DOESN'T MEET",   icon:'✗',  color:'var(--red)',   badge:'✗' },
+  incomplete: { label:'INCOMPLETE',     icon:'…',  color:'var(--muted)', badge:'—' },
+};
+const VD_Q = {
+  aligned:  'Direction consistent with bias & DOL',
+  swept:    'Opposing liquidity swept first',
+  cisod:    'Displacement with FVG cut / MSS',
+  location: 'Entry in correct half of range',
+  chop:     'Consolidation / seek-and-destroy',
+};
+const VD_SYSTEM = `You explain the result of a trade-criteria check built on a Smart Money Concepts framework (direction, then stage, then entry). You receive structured facts.
+Rules: use ONLY the supplied facts. Never invent prices, levels, probabilities or market views. Never tell the user to buy or sell — describe whether the setup meets the framework's criteria and what is missing or flagged. If the final verdict is lower than the rules-engine verdict, explain that the optional Jev review flagged the listed concerns. If Jev was not used, do not discuss it. 110-170 words, plain text, two short paragraphs, finishing with the single most useful thing to check next.`;
+
+let vdLast = null;
+const jevAvailable = () => typeof SMCJev !== 'undefined';
+
+async function runVerdict(){
+  const status = document.getElementById('vdStatus');
+  const gates = SMCEngine.evaluateGates();
+  const base = SMCEngine.baseVerdict(gates);
+  vdLast = { ts:Date.now(), gates, base, final:{level:base.level}, jev:null, jevError:null,
+             direction:SMCEngine.state.weekly_daily_bias, score:gates.total, explanation:null, logged:false };
+  if (base.level === 'incomplete'){ renderVerdict(); return; }
+
+  // Jev only reviews setups the rules engine hasn't already rejected; it can only downgrade.
+  if (jevAvailable() && SMCJev.isConfigured() && (base.level === 'meets' || base.level === 'wait')){
+    status.textContent = 'Asking Jev…';
+    try{
+      const state = SMCJev.buildState(SMCEngine.state, document.getElementById('vdContext').value);
+      const parsed = await SMCJev.evaluate(state);
+      const review = SMCJev.review(base, parsed);
+      vdLast.jev = { parsed, review };
+      vdLast.final = { level: review.level };
+    }catch(e){ vdLast.jevError = (e && e.message) || 'Jev review failed.'; }
+  }
+  status.textContent = '';
+  renderVerdict();
+  explainVerdict();
+}
+
+function vdReason(){
+  const v = vdLast;
+  if (v.jev && v.jev.review.changed){
+    const n = v.jev.review.concerns.length, u = v.jev.review.uncertain.filter(x=>x.required).length;
+    const parts = [];
+    if (n) parts.push(n + ' concern' + (n>1?'s':'') + ' flagged');
+    if (u) parts.push(u + ' required check' + (u>1?'s':'') + ' too uncertain');
+    return 'The rules engine passes this setup, but the Jev review downgraded it: ' + parts.join(', ') + '.';
+  }
+  return v.base.reason;
+}
+
+function renderVerdict(){
+  const el = document.getElementById('vdResult');
+  const v = vdLast;
+  const m = VD_META[v.final.level];
+
+  if (v.base.level === 'incomplete'){
+    el.innerHTML = `<div class="vd-pill" style="color:${m.color};border-color:${m.color}">${m.icon} ${m.label}</div>
+      <div class="vd-reason">${escHtml(v.base.reason)}</div>
+      <button class="vd-btn" onclick="switchSection('think')">Go to Think →</button>`;
+    return;
+  }
+
+  const dir = v.direction ? `<span class="vd-dir">${v.direction === 'bullish' ? 'LONG' : v.direction === 'bearish' ? 'SHORT' : 'NO'} bias</span>` : '';
+  const gateRows = Object.values(v.gates.gates).map(g => `
+    <div class="vd-gate"><span class="vd-gdot" style="background:${g.locked ? 'var(--muted)' : g.pass ? 'var(--green)' : g.score > 0 ? 'var(--amber)' : 'var(--red)'}"></span>
+      <span class="vd-gname">${g.locked ? '🔒 ' : ''}${g.label}</span><span class="vd-gscore">${g.score}/${g.max}</span></div>`).join('');
+
+  let jevBlock;
+  if (v.jev){
+    const r = v.jev.review, a = v.jev.parsed.answers;
+    const bars = Object.keys(VD_Q).filter(id => a[id]).map(id => {
+      const p = a[id].p, support = r.supports[id];
+      const col = support >= 0.6 ? 'var(--green)' : support >= 0.4 ? 'var(--amber)' : 'var(--red)';
+      return `<div class="vd-jrow"><span class="vd-jlabel">${VD_Q[id]}${id === 'chop' ? ' <em>(red flag if high)</em>' : ''}</span>
+        <span class="vd-jbar"><span style="width:${Math.round(p*100)}%;background:${col}"></span></span><span class="vd-jp">${Math.round(p*100)}%</span></div>`;
+    }).join('');
+    let phase = '';
+    if (r.phase && r.phase.choice){
+      const pp = r.phase.probabilities && r.phase.probabilities[r.phase.choice];
+      phase = `<div class="vd-muted" style="margin-top:.4rem;">Jev reads the phase as <b>${escHtml(r.phase.choice)}</b>${typeof pp === 'number' ? ' (' + Math.round(pp*100) + '%)' : ''}.</div>`;
+    }
+    const note = r.disagreement ? `<div class="vd-warn">Rules engine says this meets the criteria; Jev disagrees. That gap is worth studying.</div>` : '';
+    jevBlock = `<div class="vd-jev-results"><div class="vd-eyebrow">Jev review</div>${bars}${phase}${note}</div>`;
+  } else if (v.jevError){
+    jevBlock = `<div class="vd-warn">Jev review failed — verdict is rules-engine only. ${escHtml(v.jevError)}</div>`;
+  } else if (jevAvailable() && SMCJev.isConfigured() && v.base.level === 'no'){
+    jevBlock = `<div class="vd-muted">Jev not consulted — the rules engine already rejected this setup.</div>`;
+  } else {
+    jevBlock = `<div class="vd-muted">Jev review: not connected (optional). This verdict is rules-engine only.</div>`;
+  }
+
+  el.innerHTML = `
+    <div class="vd-head"><div class="vd-pill" style="color:${m.color};border-color:${m.color}">${m.icon} ${m.label}</div>${dir}</div>
+    <div class="vd-reason">${escHtml(vdReason())}</div>
+    <div class="vd-gates">${gateRows}</div>
+    ${jevBlock}
+    <div class="vd-explain-wrap"><div class="vd-eyebrow" style="color:var(--violet);">Why</div><div id="vdExplain" class="vd-explain"></div></div>
+    <div class="vd-actions">
+      <button class="vd-btn" id="vdLogBtn" onclick="logVerdict()">Log verdict</button>
+      <button class="vd-btn vd-btn-ghost" onclick="explainVerdict()">Re-explain</button>
+    </div>
+    <div class="vd-fine">Criteria check only. Not financial advice. Never trade on a single tool's output.</div>`;
+}
+
+async function vdCallGemini(system, userText){
+  const key = localStorage.getItem('smc_ai_key');
+  if (!key) throw new Error('no key');
+  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${key}`, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({
+      system_instruction:{parts:[{text:system}]},
+      contents:[{role:'user',parts:[{text:userText}]}],
+      generationConfig:{temperature:0.4, maxOutputTokens:3072, thinkingConfig:{thinkingLevel:'low'}}
+    })
+  });
+  if (!res.ok){ let m = 'HTTP ' + res.status; try{ const e = await res.json(); m = (e && e.error && e.error.message) || m; }catch(_){} throw new Error(m); }
+  const data = await res.json();
+  const cand = data.candidates && data.candidates[0];
+  const text = cand && cand.content && cand.content.parts ? cand.content.parts.map(p => p.text || '').join('').trim() : '';
+  if (!text) throw new Error('empty response');
+  return cand.finishReason === 'MAX_TOKENS' ? text + ' …' : text;
+}
+
+async function explainVerdict(){
+  const box = document.getElementById('vdExplain');
+  const v = vdLast;
+  if (!box || !v || v.base.level === 'incomplete') return;
+  if (!localStorage.getItem('smc_ai_key')){
+    box.innerHTML = '<span class="vd-muted">Add a Gemini key in the Consultant tab to get a written explanation.</span>';
+    return;
+  }
+  box.textContent = 'Writing explanation…';
+  const r = v.jev && v.jev.review;
+  const facts = {
+    final_verdict: VD_META[v.final.level].label,
+    rules_engine_verdict: VD_META[v.base.level].label,
+    rules_engine_reason: v.base.reason,
+    direction_bias: v.direction || null,
+    gates: Object.values(v.gates.gates).map(g => ({ name:g.label, passed:!!g.pass, locked:!!g.locked, detail:g.detail })),
+    jev_used: !!v.jev,
+    jev_flagged_concerns: r ? r.concerns.map(c => VD_Q[c.id]) : [],
+    jev_uncertain_required_checks: r ? r.uncertain.filter(u => u.required).map(u => VD_Q[u.id]) : [],
+    jev_changed_the_verdict: r ? r.changed : false,
+  };
+  try{
+    const text = await vdCallGemini(VD_SYSTEM, JSON.stringify(facts, null, 1));
+    v.explanation = text;
+    if (vdLast === v) box.textContent = text;
+  }catch(e){
+    if (vdLast === v) box.textContent = 'Could not generate the explanation (' + e.message + '). The verdict above is unaffected.';
+  }
+}
+
+function logVerdict(){
+  const v = vdLast;
+  if (!v || v.base.level === 'incomplete' || v.logged) return;
+  const sym = (document.getElementById('chartSymbolLabel') || {}).textContent || '';
+  const log = loadStore('smc_verdicts');
+  log.unshift({ id:'v_'+Date.now(), ts:v.ts, level:v.final.level, baseLevel:v.base.level, jev:!!v.jev,
+    concerns: v.jev ? v.jev.review.concerns.map(c => c.id) : [], score:v.score, direction:v.direction,
+    instrument: (sym && sym !== 'Select an instrument above') ? sym : '', outcome:null });
+  saveStore('smc_verdicts', log.slice(0, 200));
+  v.logged = true;
+  const b = document.getElementById('vdLogBtn'); if (b){ b.disabled = true; b.textContent = 'Logged ✓'; }
+  renderVerdictHistory();
+  updateApplyBadges();
+}
+
+function setVerdictOutcome(id, val){
+  const log = loadStore('smc_verdicts');
+  const i = log.findIndex(x => x.id === id);
+  if (i >= 0){ log[i].outcome = val || null; saveStore('smc_verdicts', log); }
+  renderVerdictHistory();
+}
+function deleteVerdict(id){
+  saveStore('smc_verdicts', loadStore('smc_verdicts').filter(x => x.id !== id));
+  renderVerdictHistory(); updateApplyBadges();
+}
+
+function renderVerdictHistory(){
+  const hist = document.getElementById('vdHistory'), stats = document.getElementById('vdStats');
+  if (!hist) return;
+  const log = loadStore('smc_verdicts');
+  const graded = log.filter(x => x.outcome === 'win' || x.outcome === 'loss');
+  const rate = arr => arr.length ? Math.round(arr.filter(x => x.outcome === 'win').length / arr.length * 100) + '% (' + arr.filter(x => x.outcome === 'win').length + '/' + arr.length + ')' : '—';
+  const meets = graded.filter(x => x.level === 'meets');
+  const rows = [
+    ['Meets criteria', rate(meets)],
+    ['…of those, Jev-reviewed', rate(meets.filter(x => x.jev))],
+    ['Downgraded by Jev', rate(graded.filter(x => x.baseLevel === 'meets' && x.level !== 'meets'))],
+  ];
+  stats.innerHTML = log.length ? rows.map(r => `<div class="vd-stat"><span>${r[0]}</span><b>${r[1]}</b></div>`).join('') : '';
+  if (!log.length){ hist.innerHTML = '<div class="vd-muted">No verdicts logged yet.</div>'; return; }
+  hist.innerHTML = log.slice(0, 8).map(x => {
+    const m = VD_META[x.level] || VD_META.incomplete;
+    return `<div class="vd-hrow">
+      <span class="vd-hpill" style="color:${m.color};border-color:${m.color}">${m.icon} ${m.label}</span>
+      <span class="vd-hmeta">${new Date(x.ts).toLocaleDateString()}${x.instrument ? ' · ' + escHtml(x.instrument) : ''}${x.jev ? ' · Jev' : ''}</span>
+      <select onchange="setVerdictOutcome('${x.id}',this.value)">
+        <option value="" ${!x.outcome ? 'selected' : ''}>Outcome…</option>
+        <option value="win" ${x.outcome === 'win' ? 'selected' : ''}>Win</option>
+        <option value="loss" ${x.outcome === 'loss' ? 'selected' : ''}>Loss</option>
+        <option value="be" ${x.outcome === 'be' ? 'selected' : ''}>BE</option>
+      </select>
+      <button class="vd-x" onclick="deleteVerdict('${x.id}')">✕</button></div>`;
+  }).join('');
+}
+
+// ── Jev settings (all guarded: module may not be installed) ──
+function initVerdictPane(){
+  renderVerdictHistory();
+  if (!jevAvailable()){
+    document.getElementById('vdJev').innerHTML = '<div class="vd-muted" style="margin-top:.75rem;">The Jev module (smc-jev.js) is not installed. The Verdict tab runs on the rules engine alone.</div>';
+    document.getElementById('vdJevBadge').textContent = 'n/a';
+    return;
+  }
+  const sel = document.getElementById('jevProvider');
+  if (!sel.options.length) sel.innerHTML = Object.entries(SMCJev.PROVIDERS).map(([k, p]) => `<option value="${k}">${p.label}</option>`).join('');
+  const cfg = SMCJev.getConfig();
+  sel.value = cfg.provider; 
+  document.getElementById('jevBase').value = cfg.baseUrl || '';
+  document.getElementById('jevModel').value = cfg.model || '';
+  document.getElementById('jevKey').value = cfg.key || '';
+  updateJevBadge();
+}
+function updateJevBadge(){
+  const b = document.getElementById('vdJevBadge'); if (!b || !jevAvailable()) return;
+  b.textContent = SMCJev.isConfigured() ? 'connected' : 'off';
+  b.classList.toggle('on', SMCJev.isConfigured());
+}
+function onJevProviderChange(){
+  if (!jevAvailable()) return;
+  const p = SMCJev.PROVIDERS[document.getElementById('jevProvider').value];
+  document.getElementById('jevBase').value = p.baseUrl;
+  document.getElementById('jevModel').value = p.model;
+}
+function saveJevConfig(){
+  if (!jevAvailable()) return;
+  SMCJev.saveConfig({
+    provider: document.getElementById('jevProvider').value,
+    baseUrl:  document.getElementById('jevBase').value.trim(),
+    model:    document.getElementById('jevModel').value.trim(),
+    key:      document.getElementById('jevKey').value.trim(),
+  });
+  updateJevBadge();
+  document.getElementById('jevStatus').textContent = SMCJev.isConfigured() ? 'Saved. Use "Test connection" to confirm.' : 'Saved, but incomplete — a base URL, model and (for direct providers) a key are required.';
+}
+async function testJev(){
+  if (!jevAvailable()) return;
+  const st = document.getElementById('jevStatus');
+  saveJevConfig();
+  if (!SMCJev.isConfigured()) return;
+  st.textContent = 'Testing…';
+  try{
+    const r = await SMCJev.testConnection();
+    st.textContent = 'Connected ✓ (model: ' + r.model + ')';
+  }catch(e){ st.textContent = 'Failed: ' + ((e && e.message) || 'unknown error'); }
+}
+function clearJev(){
+  if (!jevAvailable()) return;
+  SMCJev.clearConfig(); initVerdictPane();
+  document.getElementById('jevStatus').textContent = 'Jev settings removed.';
+}
+// VERDICT END
+
 function updateApplyBadges(){
   // Journal — count of active ideas
   const ideas = loadStore('smc_ideas');
   document.getElementById('badge-journal').textContent = ideas.length;
+  if (typeof VD_META !== 'undefined'){ const vl = loadStore('smc_verdicts'); document.getElementById('badge-verdict').textContent = vl.length ? VD_META[vl[0].level].badge : '—'; }
 
   // Backtest — win rate
   const backtests = loadStore('smc_backtest');
@@ -2239,6 +2560,7 @@ function initApply(){
   renderDeliveryPending();
   renderDeliveryAccuracy();
   buildMasteryGrid();
+  initVerdictPane();
   updateApplyBadges();
   const key=localStorage.getItem('smc_ai_key');
   if(key) document.getElementById('aiKeyInput').value=key;
