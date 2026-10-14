@@ -40,16 +40,16 @@
   <div class="section-inner">
     <div class="section-eyebrow">Smart Money Concepts — Interactive Mentorship</div>
     <h1 class="section-title">The Framework</h1>
-    <p class="section-sub">Every concept builds on the last. Start near the center with Market Structure and Draw on Liquidity — everything else radiates outward from there.</p>
+    <p class="section-sub">Every concept builds on the last. Start with Foundation — Market Structure and Draw on Liquidity — then work outward. Tap any concept to learn it, grade yourself, and watch the framework fill in.</p>
 
     <div class="learn-view-switcher">
-      <button class="lvs-btn active" data-view="map" onclick="switchLearnView('map',this)">🗺 Map</button>
+      <button class="lvs-btn active" data-view="grouped" onclick="switchLearnView('grouped',this)">🫧 Grouped</button>
       <button class="lvs-btn" data-view="linear" onclick="switchLearnView('linear',this)">📖 Linear</button>
-      <button class="lvs-btn" data-view="grouped" onclick="switchLearnView('grouped',this)">🗂 Grouped</button>
+      <button class="lvs-btn" data-view="map" onclick="switchLearnView('map',this)">🗺 Map</button>
     </div>
 
     <!-- VIEW: MAP -->
-    <div class="learn-view active" id="view-map">
+    <div class="learn-view" id="view-map">
       <div class="node-map-toolbar">
         <div class="node-map-legend">
           <div class="nml-item"><div class="nml-dot" style="background:var(--border2);"></div>Not graded</div>
@@ -78,7 +78,7 @@
     </div>
 
     <!-- VIEW: GROUPED -->
-    <div class="learn-view" id="view-grouped">
+    <div class="learn-view active" id="view-grouped">
       <div class="grouped-hint">Bubble size = concepts in the category. Overlap = real cross-references between categories (no shared links, no overlap). Dot ring = its category; small pip = your mastery grade. Pinch to zoom, tap a bubble to list its concepts.</div>
       <div class="node-map-wrap" id="groupedWrap">
         <div class="node-map-canvas grouped-canvas" id="groupedCanvas">
@@ -622,7 +622,10 @@ let currentSymbol = 'FX:EURUSD';
 let currentTF = '240';
 
 window.onload = function() {
-  buildNodeMap();
+  buildNodeMap();          // Map is built hidden; it re-fits when first shown
+  buildGroupedView();      // Grouped is the default first view
+  initZoomPan('grouped');
+  resetGroupedView();
   buildInstrumentGrid();
 };
 
